@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:http/http.dart' as http;
+import 'package:timetableapp/components/WeeklySchedule.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -32,29 +33,97 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildScheduleList() {
-    return  
-    ListView.builder(
+    return ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: timetable.weeklySchedules.length,
         itemBuilder: (context, index) {
-          return buildWeeklySchedule(timetable.weeklySchedules[index]);
+          return buildWeeklySchedule(timetable.weeklySchedules[index]!);
         });
   }
 
-  Widget buildWeeklySchedule(weeklySchedule) {
+  Widget buildDay(List<Event> day) {
+    /* 
+      will return a column. this column will be composed with grey spaces, and the events
+      we will start the day at 8.0, and finish at 19.0. we will increment by O.25
+      if the event equals the hour, we will add the event and will calculate the height of the event by the difference between the start and the end ( modulo 0.25)
+      if the event is not equal to the hour, we will add a grey space and increment the hour by 0.25
+
+      for intance: day = [coursefrom8h15To9h, coursefrom9h15To10h]
+      we will have a column starting with one grey space, then the first event which will be 3 grey spaces high, then 1 grey space, then the second event which will be 3 grey spaces high, then 36 grey spaces bc we are at 10h and we need to go to 19h
+      antoher instance: day = [coursefrom10to11h30] we will start with 8 grey spaces, then the event which will be 6 grey spaces high, then 30 grey spaces bc we are at 11h30 and we need to go to 19h
+     */
+
+    // We will start at 8.0 and finish at 19.0
+    double hour = 8.0;
+
+    // We will increment by 0.25
+    double increment = 0.25;
+
+    
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+        ),
+        padding: const EdgeInsets.all(1),
+        child: Column(
+          children: [
+            for (var event in day)
+              Column(
+                children: [
+                  // Grey spaces
+                  Container(
+                    height: (event.start.hour - hour) * 4 * 7,
+                    width: 100,
+                    color: Colors.grey[300],
+                  ),
+
+                  // Event
+                  Container(
+                    height: (event.end.hour - event.start.hour) * 4 * 7,
+                    width: 100,
+                    color: Colors.blue,
+                    child: Center(
+                      child: Text(
+                        event.summary,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Grey spaces
+                  Container(
+                    height: (19.0 - event.end.hour) * 4 * 7,
+                    width: 100,
+                    color: Colors.grey[300],
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+
+
+
+
+
+    
+
+
+
+  }
+
+  Widget buildWeeklySchedule(WeeklySchedule weeklySchedule) {
     return Container(
       width: 100,
-      child: Column(
-        children: [
-          for (var event in weeklySchedule.events)
-            Container(
-              height: 50,
-              width: 100,
-              color: Colors.grey[300],
-              child: Text(event.summary),
-            ),
-        ],
-      ),
+      child: ListView.builder(
+          itemCount: 5,
+          itemBuilder: (context, index) {
+            return buildDay(weeklySchedule.events[index]);
+          }),
     );
   }
 
@@ -95,13 +164,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     padding: const EdgeInsets.all(1),
                     child: Center(
-                      child:  Text(
-                        day,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    ),
+                        child: Text(
+                      day,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
                   ),
                 ),
             ],
