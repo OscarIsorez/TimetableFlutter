@@ -12,4 +12,8 @@ class Event {
     required this.end,
     required this.location,
   });
+
+
+
 }
+
