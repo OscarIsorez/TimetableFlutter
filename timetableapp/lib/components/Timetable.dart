@@ -1,10 +1,7 @@
 import 'package:timetableapp/components/WeeklySchedule.dart';
-import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
-import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'dart:convert';
 import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
 
@@ -76,10 +73,10 @@ class Timetable {
   }
 
   List<Event> all_events_sorted() {
-    List<Event> all_events_s = [];
-    all_events_s = all_events;
-    all_events_s.sort((a, b) => a.start.compareTo(b.start));
-    return all_events_s;
+    List<Event> allEventsS = [];
+    allEventsS = all_events;
+    allEventsS.sort((a, b) => a.start.compareTo(b.start));
+    return allEventsS;
   }
 
   DateTime getMonday(DateTime date) {
@@ -87,9 +84,9 @@ class Timetable {
     DateTime monday = date;
     while (monday.weekday != 1) {
       if (monday.weekday == 7 || monday.weekday == 6) {
-        monday = monday.add(Duration(days: 1));
+        monday = monday.add(const Duration(days: 1));
       } else {
-        monday = monday.subtract(Duration(days: 1));
+        monday = monday.subtract(const Duration(days: 1));
       }
     }
     return monday;
@@ -100,7 +97,7 @@ class Timetable {
     for instance, the first week will be the current week and the second week will be the next week. etc
     we check the start day of each event and add it to the corresponding WeeklySchedule 
      */
-    var all_events_s = all_events_sorted();
+    var allEventsS = all_events_sorted();
 
     DateTime now = getMonday(DateTime.now());
     print(now);
@@ -109,8 +106,8 @@ class Timetable {
 
     for (var i = 0; i < 52; i++) {
       // weektofill will be between now, and now+i*7 days
-      DateTime weektofill_start = start;
-      DateTime weektofill_end = now.add(Duration(days: i * 7));
+      DateTime weektofillStart = start;
+      DateTime weektofillEnd = now.add(Duration(days: i * 7));
 
       // we create a WeeklySchedule for the week we are filling
       WeeklySchedule weektofill = WeeklySchedule(
@@ -122,10 +119,10 @@ class Timetable {
       );
 
       // we fill the WeeklySchedule with the events that are between weektofill_start and weektofill_end
-      for (var j = 0; j < all_events_s.length; j++) {
-        if (all_events_s[j].start.isAfter(weektofill_start) &&
-            all_events_s[j].start.isBefore(weektofill_end)) {
-          weektofill.addEvent(all_events_s[j]);
+      for (var j = 0; j < allEventsS.length; j++) {
+        if (allEventsS[j].start.isAfter(weektofillStart) &&
+            allEventsS[j].start.isBefore(weektofillEnd)) {
+          weektofill.addEvent(allEventsS[j]);
         }
       }
 

@@ -1,4 +1,3 @@
-import 'package:icalendar_parser/icalendar_parser.dart';
 
 class Event {
   final String summary;

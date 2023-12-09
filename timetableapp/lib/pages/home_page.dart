@@ -70,6 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     updateMultipleSchedules();
+
   }
 
   @override
@@ -177,9 +178,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: _pageController,
                     itemCount: schedules.length,
                     itemBuilder: (context, index) {
-                      return Row(
+                      return  Row(
                         children:
-                         buildWeeklySchedule(schedules[index]),
+                            buildWeeklySchedule(schedules[index]),
+                           
+                          //  [
+                          //     Column(
+                          //       children: [
+                          //         Text("test"),
+                          //       ],
+                          //     ),
+                          //     Column(
+                          //       children: [
+                          //         Text("test"),
+                          //       ],
+                          //     ),
+                          //     Column(
+                          //       children: [
+                          //         Text("test"),
+                          //       ],
+                          //     )
+                          //  ],
 
                       );
                     },
@@ -192,77 +211,170 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
 
-List<Column> buildWeeklySchedule(WeeklySchedule schedule) {
-  // 8h from the current day
-  //  monday of the shcedule at 8h
+  List<Widget> buildWeeklySchedule(WeeklySchedule schedule) {
 
-  DateTime ending_time = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day, 19, 0);
-  DateTime starting_time = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 0);
+    List<Widget> test = [
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("test"),
+          ],
+        ),
+      ),
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("test"),
+          ],
+        ),
+      ),
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("test"),
+          ],
+        ),
+      ),
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("test"),
+          ],
+        ),
+      ),
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("test"),
+          ],
+        ),
+      ),
+      Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+        child: const Column(
+          children: [
+            Text("YUZ"),
+          ],
+        ),
+      ),
+      
 
-  if (schedule.monday.length > 0) {
-    DateTime starting_time = DateTime(schedule.monday[0].start.year,
-        schedule.monday[0].start.month, schedule.monday[0].start.day, 8, 0);
-  }
+    ];
+    
 
-  if (schedule.tuesday.length > 0) {
-    DateTime ending_time = DateTime(schedule.tuesday[0].start.year,
-        schedule.tuesday[0].start.month, schedule.tuesday[0].start.day, 19, 0);
-  }
+    List<Widget> columns = [];
 
-  List<Column> columns = [];
+    for (var i = 0; i < 5; i++) {
+      Widget column = const Column();
+      List<Widget> columnChildren = [];
+      List<Event> currentDay = schedule.events[i];
 
-  for (var i = 0; i < 5; i++) {
-    Column column = Column();
-    List<Widget> column_children = [];
-    List<Event> current_day = schedule.events[i];
 
-    //  case empty day
-    if (current_day.length > 0) {
-      for (var i = 0; i < 44; i++) {
-        column_children.add(Container(
-          height: 5,
-          color: Colors.white,
-        ));       
-      }
-    }
-    else{
-      for (var i = starting_time;
-          i.isBefore(ending_time);
-          i.add(const Duration(minutes: 15))) {
-        //  if the event of the current day is equals to i, we a container with the event.summary and event.location
-        // to the column_children
-        // else, we add a white container to the column_children
-        for(var event in current_day){
-          if(event.start.isAtSameMomentAs(i)){
-            column_children.add(Container(
-              height: 10,
-              color: Colors.blue[200],
-              child: Text(event.summary + " " + event.location),
-            ));
+      //  case empty day
+      if (currentDay.isEmpty) {
+        for (var i = 0; i < 44; i++) {
+          columnChildren.add(Container(
+            height: 5,
+            color: Colors.red,
+          ));
+        }
+      } else {
+        DateTime startingTime = DateTime(
+          currentDay[0].start.year,
+          currentDay[0].start.month,
+          currentDay[0].start.day,
+          8, 0);
+
+        DateTime endingTime = DateTime(
+          currentDay[0].start.year,
+          currentDay[0].start.month,
+          currentDay[0].start.day,
+          19, 0);
+
+        for (var i = startingTime;
+            i.isBefore(endingTime);
+            i.add(const Duration(minutes: 15))) {
+          
+          for (var event in currentDay) {
+            if (event.start.isAtSameMomentAs(i)) {
+              columnChildren.add(Container(
+                height: 10,
+                color: Colors.blue[200],
+                child: Text("${event.summary} ${event.location}"),
+              ));
+            } else {
+              columnChildren.add(Container(
+                height: 5,
+                color: Colors.white,
+              ));
+            }
           }
-          else{
-            column_children.add(Container(
-              height: 5,
-              color: Colors.white,
-            ));
-          }    
         }
       }
+
+      //  loop from 8h to 19h
+      column = Container(
+        decoration: 
+          BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 0.5,
+            ),
+          ),
+
+        child: Column(
+          children: columnChildren,
+        ),
+      );
+      columns.add(column);
     }
+    // // print(columns);
+    // for (var i = 0; i < 5; i++) {
+    //   print(columns[i]);
+    // }
 
-    //  loop from 8h to 19h
-    column = Column(
-      children: column_children,
-    );
-    columns.add(column);
-    column_children = [];
-
+    return test;
   }
-
-  return columns;
 }
-
