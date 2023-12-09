@@ -15,7 +15,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
   String appBarTitle = 'Schedule';
   List<WeeklySchedule> schedules = [];
-  Timetable timetable = Timetable(url: "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
+  Timetable timetable = Timetable(
+      url:
+          "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
 
   Event ev1 = Event(
       start: DateTime(2021, 10, 11, 8, 0),
@@ -45,7 +47,6 @@ class _MyHomePageState extends State<MyHomePage> {
       description: 'History class',
       summary: "test4");
 
-
   WeeklySchedule generateSchedle() {
     WeeklySchedule weekySh = WeeklySchedule(
       monday: [ev1, ev2, ev3, ev4],
@@ -58,19 +59,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> updateMultipleSchedules() async {
-    // setState(() {
-    //   schedules = [];
-    //   for (var i = 0; i < 10; i++) {
-
-    //     WeeklySchedule wkShuflled  = generateSchedle();
-    //     wkShuflled.monday.shuffle();
-    //     schedules.add( wkShuflled);
-    // }
-    // });
     var tpSchudles = await timetable.generateTimetable();
-    
+
     setState(() {
-      schedules = tpSchudles;  
+      schedules = tpSchudles;
     });
   }
 
@@ -89,7 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.launch),
             onPressed: () => {
-              updateMultipleSchedules(),
+              setState(() {
+                updateMultipleSchedules();
+              }),
             },
           ),
         ],
@@ -183,36 +177,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: _pageController,
                     itemCount: schedules.length,
                     itemBuilder: (context, index) {
-                      return Column(
-                        children: [
-                          for (var day in schedules[index].events)
-                            Container(
-                              child: Text
-                              (day[0].summary),
+                      return Row(
+                        children:
+                         buildWeeklySchedule(schedules[index]),
 
-                            )
-                          // Container(
-                          //   height: 100,
-                          //   width: 100,
-                          //   color: Colors.blue[300],
-                          //   child: Center(child: 
-                          //   Text(schedules[index].monday[1].summary)
-                          //   ) 
-                          // ),
-                          // Container(
-                          //   color: Colors.red[300],
-                          //    height: 100,
-                          //   width: 100,
-                          //   child: Center(child: 
-                          //   Text(schedules[index].monday[2].summary,)
-                          //   ) 
-                          // ),
-                          
-                        ],
-                          
-
-                          );
-                          
+                      );
                     },
                   ),
                 ),
@@ -224,3 +193,76 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+List<Column> buildWeeklySchedule(WeeklySchedule schedule) {
+  // 8h from the current day
+  //  monday of the shcedule at 8h
+
+  DateTime ending_time = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day, 19, 0);
+  DateTime starting_time = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 0);
+
+  if (schedule.monday.length > 0) {
+    DateTime starting_time = DateTime(schedule.monday[0].start.year,
+        schedule.monday[0].start.month, schedule.monday[0].start.day, 8, 0);
+  }
+
+  if (schedule.tuesday.length > 0) {
+    DateTime ending_time = DateTime(schedule.tuesday[0].start.year,
+        schedule.tuesday[0].start.month, schedule.tuesday[0].start.day, 19, 0);
+  }
+
+  List<Column> columns = [];
+
+  for (var i = 0; i < 5; i++) {
+    Column column = Column();
+    List<Widget> column_children = [];
+    List<Event> current_day = schedule.events[i];
+
+    //  case empty day
+    if (current_day.length > 0) {
+      for (var i = 0; i < 44; i++) {
+        column_children.add(Container(
+          height: 5,
+          color: Colors.white,
+        ));       
+      }
+    }
+    else{
+      for (var i = starting_time;
+          i.isBefore(ending_time);
+          i.add(const Duration(minutes: 15))) {
+        //  if the event of the current day is equals to i, we a container with the event.summary and event.location
+        // to the column_children
+        // else, we add a white container to the column_children
+        for(var event in current_day){
+          if(event.start.isAtSameMomentAs(i)){
+            column_children.add(Container(
+              height: 10,
+              color: Colors.blue[200],
+              child: Text(event.summary + " " + event.location),
+            ));
+          }
+          else{
+            column_children.add(Container(
+              height: 5,
+              color: Colors.white,
+            ));
+          }    
+        }
+      }
+    }
+
+    //  loop from 8h to 19h
+    column = Column(
+      children: column_children,
+    );
+    columns.add(column);
+    column_children = [];
+
+  }
+
+  return columns;
+}
+
