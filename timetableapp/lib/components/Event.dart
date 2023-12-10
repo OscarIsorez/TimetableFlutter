@@ -15,6 +15,15 @@ class Event {
   });
 
 
+  empty(){
+    return Event(
+      summary: "",
+      description: "",
+      start: DateTime.now(),
+      end: DateTime.now(),
+      location: "",
+    );
+  }
 
 }
 
