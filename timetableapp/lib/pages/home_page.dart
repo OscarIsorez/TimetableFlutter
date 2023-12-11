@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Course_tile.dart';
 import 'package:timetableapp/components/Event.dart';
-import 'package:timetableapp/components/MyWhiteSpace.dart';
+import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 
@@ -80,6 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Colors.grey[300],
                   child: Column(
                     children: [
+                        // MySpace(color: Colors.grey[200], flex: 2),
+                        const SizedBox(height: 18,),
+
                       for (var hour in [
                         '8:00',
                         '9:00',
@@ -99,58 +102,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         Expanded(
                           child: Column(
                             children: [
-                              Flexible(
-                                flex: 1,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 1),
-                                  child: Container(),
+                              // MySpace(color: Colors.grey[200]),
+                              Container(
+                                alignment: Alignment.centerRight,
+                                color: Colors.white,
+                                child: Text(
+                                  "$hour-",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
-                              Flexible(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 1),
-                                  child: Container(
-                                    alignment: Alignment.centerRight,
-                                    decoration:
-                                        // border radius
-                                        const BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(5),
-                                        bottomRight: Radius.circular(5),
-                                      ),
-                                      color: Colors.blue,
-                                    ),
-                                    child: Text(
-                                      "$hour-",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Flexible(
-                                flex: 1,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Container(),
-                                ),
-                              ),
-                              Flexible(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Container(),
-                                ),
-                              ),
-                              Flexible(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Container(),
-                                ),
-                              ),
+                              MySpace(color: Colors.grey[200], flex: 2,),
+                              MySpace(color: Colors.grey[200], flex: 2),
+                              MySpace(color: Colors.grey[200], flex: 2),
                             ],
                           ),
                         ),
@@ -179,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Column(
                                   children: [
                                     for (var i = 0; i < 45; i++)
-                                      const MyWhiteSpace(),
+                                      MySpace(color: Colors.grey[200]),
                                   ],
                                 ))
                           else
@@ -218,7 +184,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildDay(List<Event> day) {
-    List<Widget> columnChildren = [const MyWhiteSpace()];
+    List<Widget> columnChildren = [
+      MySpace(
+        color: Colors.grey[200],
+      )
+    ];
     DateTime startingTime =
         DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 8, 0);
 
@@ -229,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
         i.isBefore(endingTime);
         i = i.add(const Duration(minutes: 15))) {
       var eventAtTime = day.firstWhere(
-        (event) =>  event.start.isBefore(i) && event.end.isAfter(i),
+        (event) => event.start.isBefore(i) && event.end.isAfter(i),
         orElse: () => Event(
             summary: "",
             description: "",
@@ -253,14 +223,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 showEventDialog(eventAtTime);
               },
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                decoration: BoxDecoration(
+                  color: Colors.yellow[200],
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 0.5,
+                  ),
                 ),
                 child: Text(
                     "${eventAtTime.summary} ${eventAtTime.start.day}/${eventAtTime.start.month} ${eventAtTime.start.hour}:${eventAtTime.start.minute}",
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                     )),
               ),
             ),
@@ -268,7 +242,9 @@ class _MyHomePageState extends State<MyHomePage> {
         );
         i = eventAtTime.end;
       } else {
-        columnChildren.add(const MyWhiteSpace());
+        columnChildren.add(MySpace(
+          color: Colors.grey[200],
+        ));
       }
     }
 

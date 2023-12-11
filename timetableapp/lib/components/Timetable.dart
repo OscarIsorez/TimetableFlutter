@@ -101,13 +101,13 @@ class Timetable {
     all_events = all_events_sorted();
 
     DateTime start = getMonday(DateTime.now());
-    print(start.toString());
+    // print(start.toString());
 
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 52; i++) {
       // weektofill will be between now, and now+i*7 days
       DateTime weektofillStart = start;
       DateTime weektofillEnd = weektofillStart.add(const Duration(days:6));
-      print(weektofillStart.toString());
+      // print(weektofillStart.toString());
 
       // we create a WeeklySchedule for the week we are filling
       WeeklySchedule weektofill = WeeklySchedule(
