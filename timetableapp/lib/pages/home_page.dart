@@ -99,14 +99,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         Expanded(
                           child: Column(
                             children: [
-                              Expanded(
+                              Flexible(
                                 flex: 1,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 1),
                                   child: Container(),
                                 ),
                               ),
-                              Expanded(
+                              Flexible(
                                 flex: 2,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 1),
@@ -130,21 +130,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
-                              Expanded(
+                              Flexible(
                                 flex: 1,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Container(),
                                 ),
                               ),
-                              Expanded(
+                              Flexible(
                                 flex: 2,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Container(),
                                 ),
                               ),
-                              Expanded(
+                              Flexible(
                                 flex: 2,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 2),
@@ -196,10 +196,31 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void showEventDialog(Event event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(event.summary),
+          content: Text(
+              "${event.description}\n${event.location}\n${event.start}\n${event.end}"),
+          // actions: [
+          //   TextButton(
+          //     onPressed: () {
+          //       Navigator.of(context).pop();
+          //     },
+          //     child: const Text('Close'),
+          //   ),
+          // ],
+        );
+      },
+    );
+  }
+
   Widget buildDay(List<Event> day) {
-    List<Widget> columnChildren = [const Expanded(child: MyWhiteSpace())];
+    List<Widget> columnChildren = [const MyWhiteSpace()];
     DateTime startingTime =
-        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 7, 0);
+        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 8, 0);
 
     DateTime endingTime = DateTime(
         day[0].start.year, day[0].start.month, day[0].start.day, 19, 0);
@@ -208,8 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
         i.isBefore(endingTime);
         i = i.add(const Duration(minutes: 15))) {
       var eventAtTime = day.firstWhere(
-        (event) => // we check if event.start is equal to i
-            event.start.isAtSameMomentAs(i),
+        (event) =>  event.start.isBefore(i) && event.end.isAfter(i),
         orElse: () => Event(
             summary: "",
             description: "",
@@ -221,7 +241,6 @@ class _MyHomePageState extends State<MyHomePage> {
       if (eventAtTime.summary != "") {
         columnChildren.add(
           Expanded(
-            //  eventAtTime.end.difference(eventAtTime.start).inMinutes modulo 15 minutes
             flex: eventAtTime.end.difference(eventAtTime.start).inMinutes %
                         15 ==
                     0
@@ -229,18 +248,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 : eventAtTime.end.difference(eventAtTime.start).inMinutes ~/
                         15 +
                     1,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.red,
-                  width: 0.5,
+            child: InkWell(
+              onTap: () {
+                showEventDialog(eventAtTime);
+              },
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
                 ),
+                child: Text(
+                    "${eventAtTime.summary} ${eventAtTime.start.day}/${eventAtTime.start.month} ${eventAtTime.start.hour}:${eventAtTime.start.minute}",
+                    style: const TextStyle(
+                      color: Colors.white,
+                    )),
               ),
-              child: Text("${eventAtTime.summary}"),
             ),
           ),
         );
-        i = eventAtTime.end.subtract(const Duration(minutes: 15));
+        i = eventAtTime.end;
       } else {
         columnChildren.add(const MyWhiteSpace());
       }

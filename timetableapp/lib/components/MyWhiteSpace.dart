@@ -5,7 +5,7 @@ class MyWhiteSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Flexible(
       child: Padding(
         padding: const EdgeInsets.only(top: 1),
         child: Container(

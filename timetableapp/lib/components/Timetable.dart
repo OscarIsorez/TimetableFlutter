@@ -61,17 +61,22 @@ class Timetable {
           summary: icsObj.data[i]['summary'],
           description: icsObj.data[i]['description'],
           location: icsObj.data[i]['location'],
-          start: icsObj.data[i]['dtstart'].toDateTime()!,
-          end: icsObj.data[i]['dtend'].toDateTime()!);
+          start: icsObj.data[i]['dtstart']
+              .toDateTime()!
+              .add(const Duration(hours: 1)),
+          end: icsObj.data[i]['dtend']
+              .toDateTime()!
+              .add(const Duration(hours: 1)));
 
       all_events.add(event);
     }
 
-    // we build the list of WeeklySchedle with the list of all the event we created just before
     buildschedules();
+
     return schedules;
   }
 
+  // ignore: non_constant_identifier_names
   List<Event> all_events_sorted() {
     List<Event> allEventsS = [];
     allEventsS = all_events;
@@ -81,33 +86,28 @@ class Timetable {
 
   DateTime getMonday(DateTime date) {
     // we get the monday of the week of the date
-    DateTime monday = date;
-    while (monday.weekday != 1) {
-      if (monday.weekday == 7 || monday.weekday == 6) {
-        monday = monday.add(const Duration(days: 1));
+    DateTime currentday = date;
+    while (currentday.weekday != 1) {
+      if (currentday.weekday == 7 || currentday.weekday == 6) {
+        currentday = currentday.add(const Duration(days: 1));
       } else {
-        monday = monday.subtract(const Duration(days: 1));
+        currentday = currentday.subtract(const Duration(days: 1));
       }
     }
-    return monday;
+    return DateTime(currentday.year, currentday.month, currentday.day, 7);
   }
 
   void buildschedules() {
-    /* we create a list of WeeklySchedule containing every event in all_events based on there start day.
-    for instance, the first week will be the current week and the second week will be the next week. etc
-    we check the start day of each event and add it to the corresponding WeeklySchedule 
-     */
-    var allEventsS = all_events_sorted();
+    all_events = all_events_sorted();
 
-    DateTime now = getMonday(DateTime.now());
-    print(now);
+    DateTime start = getMonday(DateTime.now());
+    print(start.toString());
 
-    var start = now;
-
-    for (var i = 0; i < 52; i++) {
+    for (var i = 0; i < 6; i++) {
       // weektofill will be between now, and now+i*7 days
       DateTime weektofillStart = start;
-      DateTime weektofillEnd = now.add(Duration(days: i * 7));
+      DateTime weektofillEnd = weektofillStart.add(const Duration(days:6));
+      print(weektofillStart.toString());
 
       // we create a WeeklySchedule for the week we are filling
       WeeklySchedule weektofill = WeeklySchedule(
@@ -119,10 +119,12 @@ class Timetable {
       );
 
       // we fill the WeeklySchedule with the events that are between weektofill_start and weektofill_end
-      for (var j = 0; j < allEventsS.length; j++) {
-        if (allEventsS[j].start.isAfter(weektofillStart) &&
-            allEventsS[j].start.isBefore(weektofillEnd)) {
-          weektofill.addEvent(allEventsS[j]);
+      for (var j = 0; j < all_events.length; j++) {
+        if (all_events[j].start.isAfter(weektofillStart) &&
+            all_events[j].end.isBefore(weektofillEnd)) {
+          // print("start" + weektofillStart.toIso8601String());
+          // print( "event added " +  all_events[j].start.toIso8601String());
+          weektofill.addEvent(all_events[j]);
         }
       }
 
@@ -130,7 +132,7 @@ class Timetable {
       schedules.add(weektofill);
 
       // we update the start of the next week
-      start = now.add(Duration(days: i * 7));
+      start = start.add(Duration(days: 7));
     }
   }
 
