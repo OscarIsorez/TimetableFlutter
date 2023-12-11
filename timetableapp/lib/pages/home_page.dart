@@ -96,26 +96,63 @@ class _MyHomePageState extends State<MyHomePage> {
                       ])
 
                         // Hours
-                        Column(
-                          children: [
-                            Container(
-                              color: Colors.grey[300],
-                              padding: const EdgeInsets.all(2),
-                              margin: const EdgeInsets.only(bottom: 2, left: 5),
-                              alignment: Alignment.center,
-                              child: Text(
-                                hour,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 1),
+                                  child: Container(),
                                 ),
                               ),
-                            ),
-                            Container(
-                              height: 28,
-                              width: 5,
-                              color: Colors.black,
-                            ),
-                          ],
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 1),
+                                  child: Container(
+                                    alignment: Alignment.centerRight,
+                                    decoration:
+                                        // border radius
+                                        const BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(5),
+                                        bottomRight: Radius.circular(5),
+                                      ),
+                                      color: Colors.blue,
+                                    ),
+                                    child: Text(
+                                      "$hour-",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Container(),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Container(),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Container(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -141,18 +178,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                                 child: Column(
                                   children: [
-                                    for (var i = 0; i < 44; i++)
-                                      Container(
-                                        // 1/44eme de la hauteur du container
-                                        height: 15,
-                                             // Ajustez la hauteur en fonction de vos besoins
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.green,
-                                            width: 0.5,
-                                          ),
-                                        ),
-                                      ),
+                                    for (var i = 0; i < 45; i++)
+                                      const MyWhiteSpace(),
                                   ],
                                 ))
                           else
@@ -170,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildDay(List<Event> day) {
-    List<Widget> columnChildren = [];
+    List<Widget> columnChildren = [const Expanded(child: MyWhiteSpace())];
     DateTime startingTime =
         DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 7, 0);
 
@@ -184,32 +211,38 @@ class _MyHomePageState extends State<MyHomePage> {
         (event) => // we check if event.start is equal to i
             event.start.isAtSameMomentAs(i),
         orElse: () => Event(
-            summary: "white",
+            summary: "",
             description: "",
             start: DateTime.now(),
             end: DateTime.now(),
             location: ""),
       );
 
-      if (eventAtTime.summary != "white") {
+      if (eventAtTime.summary != "") {
         columnChildren.add(
-          Container(
-            height: eventAtTime.end.difference(eventAtTime.start).inMinutes * 1,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.red,
-                width: 0.5,
+          Expanded(
+            //  eventAtTime.end.difference(eventAtTime.start).inMinutes modulo 15 minutes
+            flex: eventAtTime.end.difference(eventAtTime.start).inMinutes %
+                        15 ==
+                    0
+                ? eventAtTime.end.difference(eventAtTime.start).inMinutes ~/ 15
+                : eventAtTime.end.difference(eventAtTime.start).inMinutes ~/
+                        15 +
+                    1,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.red,
+                  width: 0.5,
+                ),
               ),
+              child: Text("${eventAtTime.summary}"),
             ),
-            child: Text("${eventAtTime.summary}"),
           ),
         );
         i = eventAtTime.end.subtract(const Duration(minutes: 15));
       } else {
-        columnChildren.add(Container(
-          height: 10, // Ajustez la hauteur en fonction de vos besoins
-          color: Colors.blue[100],
-        ));
+        columnChildren.add(const MyWhiteSpace());
       }
     }
 

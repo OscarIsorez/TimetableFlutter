@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class MyWhiteSpace extends StatelessWidget {
@@ -6,9 +5,16 @@ class MyWhiteSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 10,
-
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 1),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: Colors.blue[100],
+          ),
+        ),
+      ),
     );
   }
 }
