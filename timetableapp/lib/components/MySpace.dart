@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MySpace extends StatelessWidget {
 
   Color? color;
   int flex = 1;
 
-  MySpace({
-    Key? key,
+  MySpace({super.key, 
+    
     required this.color,
     flex,
   });

@@ -56,6 +56,9 @@ class Timetable {
     // we fill  the list of events from file
     final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
+
+    final List<String> patternsToRemove = ["006", "001", "002", "003", "004", "005", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "Linux", "ISTIC", "(", ")","Prioritaire", "200", "201","202","203","204","205","206","207","208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220"];
+
     for (var i = 0; i < icsObj.data.length; i++) {
       Event event = Event(
           summary: icsObj.data[i]['summary'],
@@ -130,7 +133,7 @@ class Timetable {
       schedules.add(weektofill);
 
       // we update the start of the next week
-      start = start.add(Duration(days: 7));
+      start = start.add(const Duration(days: 7));
     }
   }
 

@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:timetableapp/components/Course_tile.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/Timetable.dart';
@@ -18,6 +15,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
   String appBarTitle = 'Schedule';
   List<WeeklySchedule> schedules = [];
+  String dayWeekDynamic = "";
   Timetable timetable = Timetable(
       url:
           "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
@@ -35,97 +33,88 @@ class _MyHomePageState extends State<MyHomePage> {
     updateMultipleSchedules();
   }
 
+  String updateDayWeek(String s) {
+    setState(() {
+      dayWeekDynamic = s;
+    });
+
+    return dayWeekDynamic;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Row(
         children: [
-          const SizedBox(height: 35),
-          // Days
-          Row(
-            children: [
-              const SizedBox(width: 65), // Case vide avant le lundi
-              for (var day in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-                Flexible(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                    ),
-                    padding: const EdgeInsets.all(1),
-                    child: Center(
+          // Première colonne pour les horaires
+          SizedBox(
+            width: 65,
+            child: Column(
+              children: [
+                const SizedBox(height: 65),
+                for (var hour in [
+                  '8:00',
+                  '9:00',
+                  '10:00',
+                  '11:00',
+                  '12:00',
+                  '13:00',
+                  '14:00',
+                  '15:00',
+                  '16:00',
+                  '17:00',
+                  '18:00',
+                ])
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.centerRight,
+                      color: Colors.white,
                       child: Text(
-                        maxLines: 1,
-                        day,
+                        "$hour-",
                         style: const TextStyle(
-                          color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 10,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
 
-          // Hours and courses
+          // Deuxième colonne pour les jours et la PageView
           Expanded(
-            child: Row(
+            child: Column(
               children: [
-                Container(
-                  width: 65,
-                  child: Column(
-                    children: [
-                      // MySpace(color: Colors.grey[200], flex: 2),
-                      const SizedBox(height: 9),
-
-                      for (var hour in [
-                        '8:00',
-                        '9:00',
-                        '10:00',
-                        '11:00',
-                        '12:00',
-                        '13:00',
-                        '14:00',
-                        '15:00',
-                        '16:00',
-                        '17:00',
-                        '18:00',
-                      ])
-
-                        // Hours
-                        Expanded(
-                          child: Column(
-                            children: [
-                              // MySpace(color: Colors.grey[200]),
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.centerRight,
-                                  color: Colors.white,
-                                  child: Text(
-                                    "$hour-",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                const SizedBox(height: 25),
+                // Row pour les jours
+                Row(
+                  children: [
+                    for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                      Flexible(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                          ),
+                          padding: const EdgeInsets.all(1),
+                          child: Center(
+                            child: Text(
+                              maxLines: 1,
+                              dayWeek,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
                               ),
-                              MySpace(
-                                color: Colors.grey[200],
-                                flex: 2,
-                              ),
-                              MySpace(color: Colors.grey[200], flex: 2),
-                              MySpace(color: Colors.grey[200], flex: 2),
-                            ],
+                            ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
 
-                // TimeTable
+                // PageView pour les événements
                 Expanded(
-                  flex: 5,
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: schedules.length,
@@ -220,22 +209,59 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 3),
             ],
           ),
-
-          // " Location : ${event.location}\n Start : ${event.start.hour}:${event.start.minute == 0 ? "00" : event.start.minute}\n End : ${event.end.hour}:${event.end.minute == 0 ? "00" : event.end.minute} Description : ${event.description}"),
-          // actions: [
-          //   TextButton(
-          //     onPressed: () {
-          //       Navigator.of(context).pop();
-          //     },
-          //     child: const Text('Close'),
-          //   ),
-          // ],
         );
       },
     );
   }
 
   Widget buildDay(List<Event> day) {
+    // updateDayWeek(day[0].start.day.toString());
+
+    List<String> patternsToRemove = [
+      "(006)",
+      "(001)",
+      "(002)",
+      "(003)",
+      "(004)",
+      "(005)",
+      "(007)",
+      "(008)",
+      "(009)",
+      "(010)",
+      "(011)",
+      "(012)",
+      "(013)",
+      "(014)",
+      "(015)",
+      "(016)",
+      "Linux",
+      "ISTIC",
+      "(",
+      ")",
+      "Prioritaire",
+      "200",
+      "201",
+      "202",
+      "203",
+      "204",
+      "205",
+      "206",
+      "207",
+      "208",
+      "209",
+      "210",
+      "211",
+      "212",
+      "213",
+      "214",
+      "215",
+      "216",
+      "217",
+      "218",
+      "219",
+      "220"
+    ];
+
     List<Widget> columnChildren = [];
     DateTime startingTime =
         DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 9, 0);
@@ -255,6 +281,11 @@ class _MyHomePageState extends State<MyHomePage> {
             end: DateTime.now(),
             location: ""),
       );
+
+      for (String toremove in patternsToRemove) {
+        eventAtTime.summary = eventAtTime.summary.replaceAll(toremove, "");
+        eventAtTime.location = eventAtTime.location.replaceAll(toremove, "");
+      }
 
       if (eventAtTime.summary != "") {
         columnChildren.add(
@@ -281,12 +312,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 0.5,
                   ),
                 ),
-                child: Text(
-                    //
-                    "${eventAtTime.summary} ${eventAtTime.location.substring(3)}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
-                    style: const TextStyle(
-                      color: Colors.black,
-                    )),
+                child: SingleChildScrollView(
+                  child: Text(
+                      //
+                      "${eventAtTime.summary} ${eventAtTime.location}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                      )),
+                ),
               ),
             ),
           ),

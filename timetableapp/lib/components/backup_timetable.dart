@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'package:icalendar_parser/icalendar_parser.dart';
 
 class backup_timetable {
   final String url;
@@ -26,9 +25,7 @@ class backup_timetable {
 
     // final openFile = await OpenFile.open(file.path);
 
-    final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
-    final jsonfile = await writeJSONData(jsonEncode(icsObj.toJson()));
 
     // final openFile = await OpenFile.open(jsonfile.path);
   }

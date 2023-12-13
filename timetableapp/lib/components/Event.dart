@@ -1,10 +1,10 @@
 
 class Event {
-  final String summary;
-  final String description;
-  final DateTime start;
-  final DateTime end;
-  final String location;
+  String summary;
+  String description;
+  DateTime start;
+  DateTime end;
+  String location;
 
   Event({
     required this.summary,
