@@ -45,14 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             children: [
               const SizedBox(width: 65), // Case vide avant le lundi
-              for (var day in [
-                'Lundi',
-                'Mardi',
-                'Mercredi',
-                'Jeudi',
-                'Vendredi'
-              ])
-                Expanded(
+              for (var day in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                Flexible(
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
@@ -60,8 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(1),
                     child: Center(
                       child: Text(
+                        maxLines: 1,
                         day,
                         style: const TextStyle(
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -77,11 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 Container(
                   width: 65,
-                  color: Colors.grey[300],
                   child: Column(
                     children: [
-                        // MySpace(color: Colors.grey[200], flex: 2),
-                        const SizedBox(height: 18,),
+                      // MySpace(color: Colors.grey[200], flex: 2),
+                      const SizedBox(height: 9),
 
                       for (var hour in [
                         '8:00',
@@ -95,7 +90,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         '16:00',
                         '17:00',
                         '18:00',
-                        '19:00',
                       ])
 
                         // Hours
@@ -103,18 +97,23 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Column(
                             children: [
                               // MySpace(color: Colors.grey[200]),
-                              Container(
-                                alignment: Alignment.centerRight,
-                                color: Colors.white,
-                                child: Text(
-                                  "$hour-",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10),
-                                  textAlign: TextAlign.center,
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.centerRight,
+                                  color: Colors.white,
+                                  child: Text(
+                                    "$hour-",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 10),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                              MySpace(color: Colors.grey[200], flex: 2,),
+                              MySpace(
+                                color: Colors.grey[200],
+                                flex: 2,
+                              ),
                               MySpace(color: Colors.grey[200], flex: 2),
                               MySpace(color: Colors.grey[200], flex: 2),
                             ],
@@ -134,20 +133,25 @@ class _MyHomePageState extends State<MyHomePage> {
                       return Row(children: [
                         for (var day in schedules[index].events)
                           if (day.isEmpty)
-                            Container(
-                                width: 65,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey,
-                                    width: 0.5,
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 1),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      for (var i = 0; i < 45; i++)
+                                        MySpace(color: Colors.grey[200]),
+                                    ],
                                   ),
                                 ),
-                                child: Column(
-                                  children: [
-                                    for (var i = 0; i < 45; i++)
-                                      MySpace(color: Colors.grey[200]),
-                                  ],
-                                ))
+                              ),
+                            )
                           else
                             buildDay(day),
                       ]);
@@ -168,8 +172,56 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(event.summary),
-          content: Text(
-              "${event.description}\n${event.location}\n${event.start}\n${event.end}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Location",
+                style: TextStyle(
+                  //underline
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(event.location.substring(3)),
+              const SizedBox(height: 3),
+              const Text(
+                "Start",
+                style: TextStyle(
+                  //underline
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                  "${event.start.hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
+              const SizedBox(height: 3),
+              const Text(
+                "End",
+                style: TextStyle(
+                  //underline
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                  "${event.end.hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
+              const SizedBox(height: 3),
+              const Text(
+                "Description",
+                style: TextStyle(
+                  //underline
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(event.description),
+              const SizedBox(height: 3),
+            ],
+          ),
+
+          // " Location : ${event.location}\n Start : ${event.start.hour}:${event.start.minute == 0 ? "00" : event.start.minute}\n End : ${event.end.hour}:${event.end.minute == 0 ? "00" : event.end.minute} Description : ${event.description}"),
           // actions: [
           //   TextButton(
           //     onPressed: () {
@@ -184,13 +236,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildDay(List<Event> day) {
-    List<Widget> columnChildren = [
-      MySpace(
-        color: Colors.grey[200],
-      )
-    ];
+    List<Widget> columnChildren = [];
     DateTime startingTime =
-        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 8, 0);
+        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 9, 0);
 
     DateTime endingTime = DateTime(
         day[0].start.year, day[0].start.month, day[0].start.day, 19, 0);
@@ -222,9 +270,11 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () {
                 showEventDialog(eventAtTime);
               },
+
+              // may use another widget here
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.yellow[200],
+                  color: Colors.deepPurple[100],
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                   border: Border.all(
                     color: Colors.grey,
@@ -232,7 +282,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 child: Text(
-                    "${eventAtTime.summary} ${eventAtTime.start.day}/${eventAtTime.start.month} ${eventAtTime.start.hour}:${eventAtTime.start.minute}",
+                    //
+                    "${eventAtTime.summary} ${eventAtTime.location.substring(3)}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
                     style: const TextStyle(
                       color: Colors.black,
                     )),

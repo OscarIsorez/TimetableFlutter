@@ -106,7 +106,7 @@ class Timetable {
     for (var i = 0; i < 52; i++) {
       // weektofill will be between now, and now+i*7 days
       DateTime weektofillStart = start;
-      DateTime weektofillEnd = weektofillStart.add(const Duration(days:6));
+      DateTime weektofillEnd = weektofillStart.add(const Duration(days: 6));
       // print(weektofillStart.toString());
 
       // we create a WeeklySchedule for the week we are filling
@@ -122,8 +122,6 @@ class Timetable {
       for (var j = 0; j < all_events.length; j++) {
         if (all_events[j].start.isAfter(weektofillStart) &&
             all_events[j].end.isBefore(weektofillEnd)) {
-          // print("start" + weektofillStart.toIso8601String());
-          // print( "event added " +  all_events[j].start.toIso8601String());
           weektofill.addEvent(all_events[j]);
         }
       }
