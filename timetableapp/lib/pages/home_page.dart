@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
@@ -20,6 +22,20 @@ class _MyHomePageState extends State<MyHomePage> {
       url:
           "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
 
+  final TextEditingController _urlController = TextEditingController();
+
+  String currentUrl = "";
+
+  // ignore: constant_identifier_names
+  static const GLOBAL_HEIGHT = 14;
+
+  String updateDayWeekDynamic(String newo) {
+    setState(() {
+      dayWeekDynamic =  newo;
+    });
+    return dayWeekDynamic;
+  }
+
   Future<void> updateMultipleSchedules() async {
     var tpSchudles = await timetable.generateTimetable();
     setState(() {
@@ -33,25 +49,33 @@ class _MyHomePageState extends State<MyHomePage> {
     updateMultipleSchedules();
   }
 
-  String updateDayWeek(String s) {
-    setState(() {
-      dayWeekDynamic = s;
-    });
-
-    return dayWeekDynamic;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(appBarTitle),
+        toolbarHeight: 30,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              updateMultipleSchedules();
+            },
+          ),
+          IconButton(onPressed: () {
+            showSettingsDialog();
+
+          }, icon: const Icon(Icons.settings)),
+        ],
+      ),
       body: Row(
         children: [
           // Première colonne pour les horaires
           SizedBox(
-            width: 65,
+            width: 40,
             child: Column(
               children: [
-                const SizedBox(height: 65),
+                const SizedBox(height: 19),
                 for (var hour in [
                   '8:00',
                   '9:00',
@@ -65,18 +89,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   '17:00',
                   '18:00',
                 ])
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.centerRight,
-                      color: Colors.white,
-                      child: Text(
-                        "$hour-",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
+                  Container(
+                    alignment: Alignment.centerRight,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    height: GLOBAL_HEIGHT * 4,
+                    color: Colors.white,
+                    child: Text(
+                      "$hour-",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
               ],
@@ -92,8 +116,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                   children: [
                     for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+
                       Flexible(
                         child: Container(
+                          height: 22,
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                           ),
@@ -101,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: Text(
                               maxLines: 1,
-                              dayWeek,
+                              updateDayWeekDynamic(dayWeek),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -117,6 +143,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
+                    onPageChanged: (int index) {
+                      updateDayWeekDynamic("updateDayWeekDynamic");
+                    },
                     itemCount: schedules.length,
                     itemBuilder: (context, index) {
                       return Row(children: [
@@ -134,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                   child: Column(
                                     children: [
-                                      for (var i = 0; i < 45; i++)
+                                      for (var i = 0; i < 44; i++)
                                         MySpace(color: Colors.grey[200]),
                                     ],
                                   ),
@@ -264,10 +293,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     List<Widget> columnChildren = [];
     DateTime startingTime =
-        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 9, 0);
+        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 9, 15);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 19, 0);
+        day[0].start.year, day[0].start.month, day[0].start.day, 20, 0);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
@@ -289,38 +318,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
       if (eventAtTime.summary != "") {
         columnChildren.add(
-          Expanded(
-            flex: eventAtTime.end.difference(eventAtTime.start).inMinutes %
-                        15 ==
-                    0
-                ? eventAtTime.end.difference(eventAtTime.start).inMinutes ~/ 15
-                : eventAtTime.end.difference(eventAtTime.start).inMinutes ~/
-                        15 +
-                    1,
-            child: InkWell(
-              onTap: () {
-                showEventDialog(eventAtTime);
-              },
-
-              // may use another widget here
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple[100],
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 0.5,
-                  ),
+          InkWell(
+            onTap: () {
+              showEventDialog(eventAtTime);
+            },
+            // may use another widget here
+            child: Container(
+              height: (GLOBAL_HEIGHT *
+                      (eventAtTime.end.difference(eventAtTime.start).inMinutes /
+                          15)) +
+                  (eventAtTime.end.difference(eventAtTime.start).inMinutes /
+                      15),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple[100],
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 0.5,
                 ),
-                child: SingleChildScrollView(
-                  child: Text(
-                      //
-                      "${eventAtTime.summary} ${eventAtTime.location}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      )),
-                ),
+              ),
+              child: SingleChildScrollView(
+                child: Text(
+                    //
+                    "${eventAtTime.summary} ${eventAtTime.location}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                    )),
               ),
             ),
           ),
@@ -346,6 +370,50 @@ class _MyHomePageState extends State<MyHomePage> {
           children: columnChildren,
         ),
       ),
+    );
+  }
+
+
+  void showSettingsDialog() {
+    String newUrl = ""; // Variable pour stocker le nouvel URL
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Settings'),
+          content: Column(
+            children: [
+              TextField(
+                onChanged: (value) {
+                  newUrl = value;
+                },
+                decoration: InputDecoration(labelText: 'Enter New URL'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (newUrl.isNotEmpty) {
+                  setState(() {
+                    timetable.url = newUrl;
+                  });
+                  updateMultipleSchedules();
+                }
+                Navigator.pop(context);
+              },
+              child: Text('Done'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

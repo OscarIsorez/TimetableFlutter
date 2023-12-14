@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import  'package:timetableapp/pages/home_page.dart' as home_page;
 
 // ignore: must_be_immutable
 class MySpace extends StatelessWidget {
@@ -14,18 +15,17 @@ class MySpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      flex: flex ?? 1,
-      child: Padding(
+    return 
+      Padding(
         padding: const EdgeInsets.only(top: 1),
         child: Container(
+          height: 14,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
             color:  color,
             
           ),
         ),
-      ),
-    );
+      );
   }
 }

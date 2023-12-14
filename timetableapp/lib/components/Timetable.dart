@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:http/http.dart' as http;
@@ -44,10 +45,30 @@ class Timetable {
   }
 
   Future<List<WeeklySchedule>> generateTimetable() async {
-    //  extracting data from ics file
-    //  and converting it to a list of events
-    //  and then adding it to the schedule
+    
     final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode != 200) {
+      AlertDialog(
+        title: const Text('Error'),
+        content: const SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('Error while fetching data'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Retry'),
+            onPressed: () {
+              generateTimetable();
+            },
+          ),
+        ],
+      );
+      return <WeeklySchedule>[];
+    }
 
     final body = response.body;
 
@@ -57,7 +78,6 @@ class Timetable {
     final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
 
-    final List<String> patternsToRemove = ["006", "001", "002", "003", "004", "005", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "Linux", "ISTIC", "(", ")","Prioritaire", "200", "201","202","203","204","205","206","207","208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220"];
 
     for (var i = 0; i < icsObj.data.length; i++) {
       Event event = Event(
