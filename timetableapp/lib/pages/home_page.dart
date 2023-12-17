@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
-import 'package:timetableapp/components/App_Theme.dart' ;
+import 'package:timetableapp/components/App_Theme.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -32,8 +31,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String currentUrl = "";
 
+  Color? mygrey = Colors.grey[100];
+
   // ignore: constant_identifier_names
-  static const GLOBAL_HEIGHT = 14;
+  static const double GLOBAL_HEIGHT = 15;
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
     setState(() {
@@ -49,25 +50,25 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
- void initMapOfColors(List<Event> events, List<Color?> colors) {
-  MyColors.clear();
+  void initMapOfColors(List<Event> events, List<Color?> colors) {
+    MyColors.clear();
 
-  var shuffledColors = List.from(colors)..shuffle();
-  var index = 0;
+    var shuffledColors = List.from(colors)..shuffle();
+    var index = 0;
 
-  for (var event in events) {
-    if (index == shuffledColors.length) {
-      index = 0;
+    for (var event in events) {
+      if (index == shuffledColors.length) {
+        index = 0;
+      }
+      if (event.summary.contains("CC")) {
+        MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
+      } else {
+        MyColors.putIfAbsent(
+            event.summary.substring(0, 3), () => shuffledColors[index]!);
+      }
+      index++;
     }
-    if (event.summary.contains("CC")) { // change to  eventAtTime.summary.substring(0, 3).
-      MyColors.putIfAbsent(event.summary, () => Colors.red);
-    } else {
-      MyColors.putIfAbsent(event.summary, () => shuffledColors[index]!);
-    }
-    index++;
   }
-}
-
 
   void goToFirstWeek() {
     _pageController.animateToPage(0,
@@ -78,8 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    initMapOfColors(
-        timetable.all_events, AppTheme.listOfColorsForCourses);
+    initMapOfColors(timetable.all_events, AppTheme.listOfColorsForCourses);
     updateMultipleSchedules();
   }
 
@@ -87,21 +87,34 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            )),
-        toolbarHeight: 30,
+        title: Container(
+          // margin : const EdgeInsets.only(top: 2),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          // margin : const EdgeInsets.only(top: 2),
+          child: Center(
+            child: Text(
+                "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+          ),
+        ),
+        toolbarHeight: 36,
+        backgroundColor: Colors.grey[100],
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              initMapOfColors(timetable.all_events,
-                  AppTheme.listOfColorsForCourses);
               updateMultipleSchedules();
+              initMapOfColors(
+                  timetable.all_events, AppTheme.listOfColorsForCourses);
 
-              // toast "up to date ! "
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Center(
@@ -148,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 9),
+                  // const SizedBox(height: 5),
                   for (var hour in [
                     '8:00',
                     '9:00',
@@ -185,7 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: Column(
               children: [
-                const SizedBox(height: 15),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
@@ -223,25 +236,28 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                     itemCount: schedules.length,
                     itemBuilder: (context, index) {
-                      return Row(children: [
-                        for (var day in schedules[index].events)
-                          if (day.isEmpty)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 1),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      for (var i = 0; i < 42; i++)
-                                        MySpace(color: Colors.grey[200]),
-                                    ],
+                      return SingleChildScrollView(
+                        child: Column(children: [
+                          Row(children: [
+                            for (var day in schedules[index].events)
+                              if (day.isEmpty)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 1),
+                                    child: Column(
+                                      children: [
+                                        for (var i = 0; i < 42; i++)
+                                          MySpace(color: mygrey, height: 15),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            )
-                          else
-                            buildDay(day),
-                      ]);
+                                )
+                              else
+                                buildDay(day),
+                          ]),
+                          // const SizedBox(height: 5),
+                        ]),
+                      );
                     },
                   ),
                 ),
@@ -388,7 +404,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       if (eventAtTime.summary != "") {
-      
         columnChildren.add(
           InkWell(
             onTap: () {
@@ -396,13 +411,12 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             // may use another widget here
             child: Container(
-              // on centre le contenu 
+              // on centre le contenu
               alignment: Alignment.center,
 
               padding: const EdgeInsets.only(
                 left: 2,
                 right: 2,
-
               ),
               height: (GLOBAL_HEIGHT *
                       (eventAtTime.end.difference(eventAtTime.start).inMinutes /
@@ -410,7 +424,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                       15),
               decoration: BoxDecoration(
-                color: MyColors[eventAtTime.summary],// change to  eventAtTime.summary.substring(0, 3).
+                // if the event.contain("CC")  color is  red else MyColors[eventAtTime.summary.substring(0, 3)]
+                color: eventAtTime.summary.contains("CC")
+                    ? Colors.red
+                    : MyColors[eventAtTime.summary.substring(0, 3)],
+
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
 
                 // border: Border.all(
@@ -449,7 +467,8 @@ class _MyHomePageState extends State<MyHomePage> {
         i = eventAtTime.end;
       } else {
         columnChildren.add(MySpace(
-          color: Colors.grey[200],
+          color: mygrey,
+          height: 15,
         ));
       }
     }
@@ -457,10 +476,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Expanded(
       child: SizedBox(
         width: 65,
-        child: SingleChildScrollView(
-          child: Column(
-            children: columnChildren,
-          ),
+        child: Column(
+          children: columnChildren,
         ),
       ),
     );
