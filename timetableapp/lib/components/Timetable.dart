@@ -17,35 +17,9 @@ class Timetable {
 
   // ------------------ METHODS ------------------ //
 
-  generateInitSchedles() {
-    List<Event> events = [
-      Event(
-          summary: "the summary",
-          description: " the description",
-          location: "the location",
-          start: DateTime.now(),
-          end: DateTime.now()),
-      Event(
-          summary: "the summary",
-          description: " the description",
-          location: "the location",
-          start: DateTime.now(),
-          end: DateTime.now()),
-    ];
-    WeeklySchedule weekySh = WeeklySchedule(
-      monday: events,
-      tuesday: [],
-      wednesday: events,
-      thursday: events,
-      friday: events,
-    );
-    for (var i = 0; i < 3; i++) {
-      schedules.add(weekySh);
-    }
-  }
-
   Future<List<WeeklySchedule>> generateTimetable() async {
     final response = await http.get(Uri.parse(url));
+
 
     if (response.statusCode != 200) {
       AlertDialog(
@@ -78,18 +52,16 @@ class Timetable {
 
     for (var i = 0; i < icsObj.data.length; i++) {
       Event event = Event(
-          summary: icsObj.data[i]['summary'],
+          summary: icsObj.data[i]['summary'].replaceAll("G4", ""),
           description: icsObj.data[i]['description'],
           location: icsObj.data[i]['location'],
           start: icsObj.data[i]['dtstart'].toDateTime()!,
           // .add(const Duration(hours: 1)),
-          end: icsObj.data[i]['dtend'].toDateTime()!
-          );
+          end: icsObj.data[i]['dtend'].toDateTime()!);
       // .add(const Duration(hours: 1)));
 
       all_events.add(event);
     }
-
     buildschedules();
 
     return schedules;
@@ -120,15 +92,11 @@ class Timetable {
     all_events = all_events_sorted();
 
     DateTime start = getMonday(DateTime.now());
-    // print(start.toString());
 
     for (var i = 0; i < 52; i++) {
-      // weektofill will be between now, and now+i*7 days
       DateTime weektofillStart = start;
       DateTime weektofillEnd = weektofillStart.add(const Duration(days: 6));
-      // print(weektofillStart.toString());
 
-      // we create a WeeklySchedule for the week we are filling
       WeeklySchedule weektofill = WeeklySchedule(
         monday: [],
         tuesday: [],
@@ -137,18 +105,13 @@ class Timetable {
         friday: [],
       );
 
-      // we fill the WeeklySchedule with the events that are between weektofill_start and weektofill_end
       for (var j = 0; j < all_events.length; j++) {
         if (all_events[j].start.isAfter(weektofillStart) &&
             all_events[j].end.isBefore(weektofillEnd)) {
           weektofill.addEvent(all_events[j]);
         }
       }
-
-      // we add the WeeklySchedule to the list of schedules
       schedules.add(weektofill);
-
-      // we update the start of the next week
       start = start.add(const Duration(days: 7));
     }
   }

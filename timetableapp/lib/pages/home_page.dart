@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
+import 'package:timetableapp/components/App_Theme.dart' ;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -23,6 +25,8 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime appBarTitle = Timetable.getMonday(DateTime.now());
 
   List<WeeklySchedule> schedules = [];
+
+  Map<String, Color> MyColors = {};
 
   final TextEditingController _urlController = TextEditingController();
 
@@ -45,16 +49,37 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+ void initMapOfColors(List<Event> events, List<Color?> colors) {
+  MyColors.clear();
+
+  var shuffledColors = List.from(colors)..shuffle();
+  var index = 0;
+
+  for (var event in events) {
+    if (index == shuffledColors.length) {
+      index = 0;
+    }
+    if (event.summary.contains("CC")) { // change to  eventAtTime.summary.substring(0, 3).
+      MyColors.putIfAbsent(event.summary, () => Colors.red);
+    } else {
+      MyColors.putIfAbsent(event.summary, () => shuffledColors[index]!);
+    }
+    index++;
+  }
+}
+
+
   void goToFirstWeek() {
     _pageController.animateToPage(0,
         duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
-
     updateDayWeekDynamic(Timetable.getMonday(DateTime.now()));
   }
 
   @override
   void initState() {
     super.initState();
+    initMapOfColors(
+        timetable.all_events, AppTheme.listOfColorsForCourses);
     updateMultipleSchedules();
   }
 
@@ -63,8 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          // if the day or month are smaller than 10, we add a 0 before
-            // "${appBarTitle.day}/${appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month}",
             "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
             style: const TextStyle(
               fontWeight: FontWeight.bold,
@@ -74,9 +97,11 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
+              initMapOfColors(timetable.all_events,
+                  AppTheme.listOfColorsForCourses);
               updateMultipleSchedules();
-              // toast "uup to date ! "
 
+              // toast "up to date ! "
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Center(
@@ -120,40 +145,42 @@ class _MyHomePageState extends State<MyHomePage> {
           // Première colonne pour les horaires
           SizedBox(
             width: 40,
-            child: Column(
-              children: [
-                const SizedBox(height: 9),
-                for (var hour in [
-                  '8:00',
-                  '9:00',
-                  '10:00',
-                  '11:00',
-                  '12:00',
-                  '13:00',
-                  '14:00',
-                  '15:00',
-                  '16:00',
-                  '17:00',
-                  '18:00',
-                ])
-                  Container(
-                    alignment: Alignment.centerRight,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    height: GLOBAL_HEIGHT * 4,
-                    color: Colors.white,
-                    child: Text(
-                      "$hour-",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 9),
+                  for (var hour in [
+                    '8:00',
+                    '9:00',
+                    '10:00',
+                    '11:00',
+                    '12:00',
+                    '13:00',
+                    '14:00',
+                    '15:00',
+                    '16:00',
+                    '17:00',
+                    '18:00',
+                  ])
+                    Container(
+                      alignment: Alignment.centerRight,
+                      margin: const EdgeInsets.only(bottom: 4),
+                      height: GLOBAL_HEIGHT * 4,
+                      color: Colors.white,
+                      child: Text(
+                        "$hour-",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
-      
+
           // Deuxième colonne pour les jours et la PageView
           Expanded(
             child: Column(
@@ -183,15 +210,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                   ],
                 ),
-      
-                // PageView pour les événements
+
+                // ADD A COLUMN TO WRAP IT IN A SCROLLVIEW
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (int index) {
                       var newAppBarTitle = Timetable.getMonday(DateTime.now())
                           .add(Duration(days: index * 7));
-      
+
                       updateDayWeekDynamic(newAppBarTitle);
                     },
                     itemCount: schedules.length,
@@ -202,11 +229,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.only(top: 1),
-                                child: Column(
-                                  children: [
-                                    for (var i = 0; i < 42; i++)
-                                      MySpace(color: Colors.grey[200]),
-                                  ],
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      for (var i = 0; i < 42; i++)
+                                        MySpace(color: Colors.grey[200]),
+                                    ],
+                                  ),
                                 ),
                               ),
                             )
@@ -354,11 +383,12 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       for (String toremove in patternsToRemove) {
-        eventAtTime.summary = eventAtTime.summary.replaceAll(toremove, "");
+        // eventAtTime.summary = eventAtTime.summary.replaceAll(toremove, "");
         eventAtTime.location = eventAtTime.location.replaceAll(toremove, "");
       }
 
       if (eventAtTime.summary != "") {
+      
         columnChildren.add(
           InkWell(
             onTap: () {
@@ -366,14 +396,21 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             // may use another widget here
             child: Container(
-              padding: const EdgeInsets.all(1),
+              // on centre le contenu 
+              alignment: Alignment.center,
+
+              padding: const EdgeInsets.only(
+                left: 2,
+                right: 2,
+
+              ),
               height: (GLOBAL_HEIGHT *
                       (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                           15)) +
                   (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                       15),
               decoration: BoxDecoration(
-                color: Colors.deepPurple[100],
+                color: MyColors[eventAtTime.summary],// change to  eventAtTime.summary.substring(0, 3).
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
 
                 // border: Border.all(
@@ -382,17 +419,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 // ),
               ),
               child: SingleChildScrollView(
-                child: Center(
-                  child: Text(
-                      //
-                      "${eventAtTime.summary} ${eventAtTime.location}\n",
-                      textAlign: TextAlign.center ,
+                child: Column(
+                  children: [
+                    Center(
+                      child: Text(
+                          //
+                          "${eventAtTime.summary}\n",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          )),
+                    ),
+                    Text(
+                      "${eventAtTime.location}\n",
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.black,
-                        fontSize: 10,
-                      )),
-                      
-                      
+                        fontSize: 8,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -409,9 +457,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return Expanded(
       child: SizedBox(
         width: 65,
-        
-        child: Column(
-          children: columnChildren,
+        child: SingleChildScrollView(
+          child: Column(
+            children: columnChildren,
+          ),
         ),
       ),
     );
