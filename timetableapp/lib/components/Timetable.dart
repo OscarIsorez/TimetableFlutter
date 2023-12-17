@@ -45,7 +45,6 @@ class Timetable {
   }
 
   Future<List<WeeklySchedule>> generateTimetable() async {
-    
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode != 200) {
@@ -77,19 +76,16 @@ class Timetable {
     // we fill  the list of events from file
     final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
-
-
     for (var i = 0; i < icsObj.data.length; i++) {
       Event event = Event(
           summary: icsObj.data[i]['summary'],
           description: icsObj.data[i]['description'],
           location: icsObj.data[i]['location'],
-          start: icsObj.data[i]['dtstart']
-              .toDateTime()!
-              .add(const Duration(hours: 1)),
-          end: icsObj.data[i]['dtend']
-              .toDateTime()!
-              .add(const Duration(hours: 1)));
+          start: icsObj.data[i]['dtstart'].toDateTime()!,
+          // .add(const Duration(hours: 1)),
+          end: icsObj.data[i]['dtend'].toDateTime()!
+          );
+      // .add(const Duration(hours: 1)));
 
       all_events.add(event);
     }
@@ -107,7 +103,7 @@ class Timetable {
     return allEventsS;
   }
 
-  DateTime getMonday(DateTime date) {
+  static DateTime getMonday(DateTime date) {
     // we get the monday of the week of the date
     DateTime currentday = date;
     while (currentday.weekday != 1) {

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
@@ -7,20 +5,24 @@ import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  const MyHomePage({
+    super.key,
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
-  String appBarTitle = 'Schedule';
-  List<WeeklySchedule> schedules = [];
-  String dayWeekDynamic = "";
   Timetable timetable = Timetable(
       url:
           "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
+
+  DateTime appBarTitle = Timetable.getMonday(DateTime.now());
+
+  List<WeeklySchedule> schedules = [];
 
   final TextEditingController _urlController = TextEditingController();
 
@@ -29,11 +31,11 @@ class _MyHomePageState extends State<MyHomePage> {
   // ignore: constant_identifier_names
   static const GLOBAL_HEIGHT = 14;
 
-  String updateDayWeekDynamic(String newo) {
+  DateTime updateDayWeekDynamic(DateTime newDate) {
     setState(() {
-      dayWeekDynamic =  newo;
+      appBarTitle = newDate;
     });
-    return dayWeekDynamic;
+    return appBarTitle;
   }
 
   Future<void> updateMultipleSchedules() async {
@@ -41,6 +43,13 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       schedules = tpSchudles;
     });
+  }
+
+  void goToFirstWeek() {
+    _pageController.animateToPage(0,
+        duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+
+    updateDayWeekDynamic(Timetable.getMonday(DateTime.now()));
   }
 
   @override
@@ -53,19 +62,57 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(appBarTitle),
+        title: Text(
+          // if the day or month are smaller than 10, we add a 0 before
+            // "${appBarTitle.day}/${appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month}",
+            "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            )),
         toolbarHeight: 30,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               updateMultipleSchedules();
+              // toast "uup to date ! "
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Center(
+                      child: Text(
+                    "Up to date !",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  duration: const Duration(milliseconds: 1000),
+                  backgroundColor: Colors.green[300],
+                  elevation: 10,
+                  // we add a margin to the toast and borderradius
+                  margin: const EdgeInsets.all(10),
+                  behavior: SnackBarBehavior.floating,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  animation: CurvedAnimation(
+                      parent: const AlwaysStoppedAnimation(1),
+                      curve: Curves.easeInOut),
+                ),
+              );
             },
           ),
-          IconButton(onPressed: () {
-            showSettingsDialog();
-
-          }, icon: const Icon(Icons.settings)),
+          IconButton(
+              onPressed: () {
+                showChangeUrlDialog();
+              },
+              icon: const Icon(Icons.link)),
+          IconButton(
+              onPressed:
+                  // go back to the first page
+                  () => goToFirstWeek(),
+              icon: const Icon(Icons.home))
         ],
       ),
       body: Row(
@@ -75,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
             width: 40,
             child: Column(
               children: [
-                const SizedBox(height: 19),
+                const SizedBox(height: 9),
                 for (var hour in [
                   '8:00',
                   '9:00',
@@ -106,17 +153,15 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-
+      
           // Deuxième colonne pour les jours et la PageView
           Expanded(
             child: Column(
               children: [
-                const SizedBox(height: 25),
-                // Row pour les jours
+                const SizedBox(height: 15),
                 Row(
                   children: [
                     for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-
                       Flexible(
                         child: Container(
                           height: 22,
@@ -127,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: Text(
                               maxLines: 1,
-                              updateDayWeekDynamic(dayWeek),
+                              dayWeek,
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -138,13 +183,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                   ],
                 ),
-
+      
                 // PageView pour les événements
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (int index) {
-                      updateDayWeekDynamic("updateDayWeekDynamic");
+                      var newAppBarTitle = Timetable.getMonday(DateTime.now())
+                          .add(Duration(days: index * 7));
+      
+                      updateDayWeekDynamic(newAppBarTitle);
                     },
                     itemCount: schedules.length,
                     itemBuilder: (context, index) {
@@ -154,19 +202,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.only(top: 1),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      for (var i = 0; i < 44; i++)
-                                        MySpace(color: Colors.grey[200]),
-                                    ],
-                                  ),
+                                child: Column(
+                                  children: [
+                                    for (var i = 0; i < 42; i++)
+                                      MySpace(color: Colors.grey[200]),
+                                  ],
                                 ),
                               ),
                             )
@@ -179,6 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
+          const SizedBox(width: 5),
         ],
       ),
     );
@@ -213,7 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               Text(
-                  "${event.start.hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
+                  "${event.start.add(const Duration(hours: 1)).hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
               const SizedBox(height: 3),
               const Text(
                 "End",
@@ -223,8 +264,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                  "${event.end.hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
+              Text("${event.end.add(
+                    const Duration(hours: 1),
+                  ).hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
               const SizedBox(height: 3),
               const Text(
                 "Description",
@@ -292,11 +334,11 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
 
     List<Widget> columnChildren = [];
-    DateTime startingTime =
-        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 9, 15);
+    DateTime startingTime = DateTime(
+        day[0].start.year, day[0].start.month, day[0].start.day, 8, 15);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 20, 0);
+        day[0].start.year, day[0].start.month, day[0].start.day, 18, 45);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
@@ -324,6 +366,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             // may use another widget here
             child: Container(
+              padding: const EdgeInsets.all(1),
               height: (GLOBAL_HEIGHT *
                       (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                           15)) +
@@ -332,19 +375,25 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: Colors.deepPurple[100],
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 0.5,
-                ),
+
+                // border: Border.all(
+                //   color: Colors.grey,
+                //   width: 0.5,
+                // ),
               ),
               child: SingleChildScrollView(
-                child: Text(
-                    //
-                    "${eventAtTime.summary} ${eventAtTime.location}\n${eventAtTime.start.hour}:${eventAtTime.start.minute == 0 ? "00" : eventAtTime.start.minute}",
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                    )),
+                child: Center(
+                  child: Text(
+                      //
+                      "${eventAtTime.summary} ${eventAtTime.location}\n",
+                      textAlign: TextAlign.center ,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                      )),
+                      
+                      
+                ),
               ),
             ),
           ),
@@ -358,14 +407,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     return Expanded(
-      child: Container(
+      child: SizedBox(
         width: 65,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.grey,
-            width: 0.5,
-          ),
-        ),
+        
         child: Column(
           children: columnChildren,
         ),
@@ -373,22 +417,22 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-
-  void showSettingsDialog() {
+  void showChangeUrlDialog() {
     String newUrl = ""; // Variable pour stocker le nouvel URL
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Settings'),
+          title: const Text('Change URL'),
           content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 onChanged: (value) {
                   newUrl = value;
                 },
-                decoration: InputDecoration(labelText: 'Enter New URL'),
+                decoration: const InputDecoration(labelText: 'Enter New URL'),
               ),
             ],
           ),
@@ -397,7 +441,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Close'),
+              child: const Text('Close'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -409,7 +453,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
                 Navigator.pop(context);
               },
-              child: Text('Done'),
+              child: const Text('Done'),
             ),
           ],
         );

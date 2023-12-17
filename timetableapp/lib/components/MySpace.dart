@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import  'package:timetableapp/pages/home_page.dart' as home_page;
 
 // ignore: must_be_immutable
 class MySpace extends StatelessWidget {
