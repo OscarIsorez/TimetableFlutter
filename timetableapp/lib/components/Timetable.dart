@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
 
 class Timetable {
+  // ------------------ ATTRIBUTES ------------------ //
   String url = "";
   List<WeeklySchedule> schedules = [];
   List<Event> all_events = [];
@@ -18,9 +19,14 @@ class Timetable {
   // ------------------ METHODS ------------------ //
 
   Future<List<WeeklySchedule>> generateTimetable() async {
+
+    // schedules = []; REMOVES COLORS OR NEW FUNC
+    // all_events = [];
+
+
     final response = await http.get(Uri.parse(url));
 
-
+    print(response.statusCode);
     if (response.statusCode != 200) {
       AlertDialog(
         title: const Text('Error'),

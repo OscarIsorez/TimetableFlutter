@@ -29,12 +29,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final TextEditingController _urlController = TextEditingController();
 
-  String currentUrl = "";
-
   Color? mygrey = Colors.grey[100];
 
   // ignore: constant_identifier_names
   static const double GLOBAL_HEIGHT = 15;
+
+  bool isVAlide(String url) {
+    return url.contains("https://") || url.contains("http://") ? true : false;
+  }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
     setState(() {
@@ -46,17 +48,19 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> updateMultipleSchedules() async {
     var tpSchudles = await timetable.generateTimetable();
     setState(() {
-      schedules = tpSchudles;
+      schedules = tpSchudles; 
     });
   }
 
   void initMapOfColors(List<Event> events, List<Color?> colors) {
+    print("intiMapOfColors");
     MyColors.clear();
 
     var shuffledColors = List.from(colors)..shuffle();
     var index = 0;
-
+    print(events.length);
     for (var event in events) {
+      print(event.summary);
       if (index == shuffledColors.length) {
         index = 0;
       }
@@ -76,199 +80,39 @@ class _MyHomePageState extends State<MyHomePage> {
     updateDayWeekDynamic(Timetable.getMonday(DateTime.now()));
   }
 
+  SingleChildScrollView buildTimetable(WeeklySchedule schedule) {
+    return SingleChildScrollView(
+      child: Column(children: [
+        Row(children: [
+          for (var day in schedule.events)
+            if (day.isEmpty)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < 42; i++)
+                        MySpace(color: mygrey, height: 15),
+                    ],
+                  ),
+                ),
+              )
+            else
+              buildDay(day),
+        ]),
+        // const SizedBox(height: 5),
+      ]),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    initMapOfColors(timetable.all_events, AppTheme.listOfColorsForCourses);
     updateMultipleSchedules();
+    initMapOfColors(timetable.all_events, AppTheme.listOfColorsForCourses);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          // margin : const EdgeInsets.only(top: 2),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.black,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          // margin : const EdgeInsets.only(top: 2),
-          child: Center(
-            child: Text(
-                "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                )),
-          ),
-        ),
-        toolbarHeight: 36,
-        backgroundColor: Colors.grey[100],
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              updateMultipleSchedules();
-              initMapOfColors(
-                  timetable.all_events, AppTheme.listOfColorsForCourses);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Center(
-                      child: Text(
-                    "Up to date !",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-                  duration: const Duration(milliseconds: 1000),
-                  backgroundColor: Colors.green[300],
-                  elevation: 10,
-                  // we add a margin to the toast and borderradius
-                  margin: const EdgeInsets.all(10),
-                  behavior: SnackBarBehavior.floating,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                  animation: CurvedAnimation(
-                      parent: const AlwaysStoppedAnimation(1),
-                      curve: Curves.easeInOut),
-                ),
-              );
-            },
-          ),
-          IconButton(
-              onPressed: () {
-                showChangeUrlDialog();
-              },
-              icon: const Icon(Icons.link)),
-          IconButton(
-              onPressed:
-                  // go back to the first page
-                  () => goToFirstWeek(),
-              icon: const Icon(Icons.home))
-        ],
-      ),
-      body: Row(
-        children: [
-          // Première colonne pour les horaires
-          SizedBox(
-            width: 40,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // const SizedBox(height: 5),
-                  for (var hour in [
-                    '8:00',
-                    '9:00',
-                    '10:00',
-                    '11:00',
-                    '12:00',
-                    '13:00',
-                    '14:00',
-                    '15:00',
-                    '16:00',
-                    '17:00',
-                    '18:00',
-                  ])
-                    Container(
-                      alignment: Alignment.centerRight,
-                      margin: const EdgeInsets.only(bottom: 4),
-                      height: GLOBAL_HEIGHT * 4,
-                      color: Colors.white,
-                      child: Text(
-                        "$hour-",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Deuxième colonne pour les jours et la PageView
-          Expanded(
-            child: Column(
-              children: [
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-                      Flexible(
-                        child: Container(
-                          height: 22,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                          ),
-                          padding: const EdgeInsets.all(1),
-                          child: Center(
-                            child: Text(
-                              maxLines: 1,
-                              dayWeek,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-
-                // ADD A COLUMN TO WRAP IT IN A SCROLLVIEW
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (int index) {
-                      var newAppBarTitle = Timetable.getMonday(DateTime.now())
-                          .add(Duration(days: index * 7));
-
-                      updateDayWeekDynamic(newAppBarTitle);
-                    },
-                    itemCount: schedules.length,
-                    itemBuilder: (context, index) {
-                      return SingleChildScrollView(
-                        child: Column(children: [
-                          Row(children: [
-                            for (var day in schedules[index].events)
-                              if (day.isEmpty)
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 1),
-                                    child: Column(
-                                      children: [
-                                        for (var i = 0; i < 42; i++)
-                                          MySpace(color: mygrey, height: 15),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              else
-                                buildDay(day),
-                          ]),
-                          // const SizedBox(height: 5),
-                        ]),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 5),
-        ],
-      ),
-    );
-  }
+  // ignore: non_constant_identifier_names
 
   void showEventDialog(Event event) {
     showDialog(
@@ -430,11 +274,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     : MyColors[eventAtTime.summary.substring(0, 3)],
 
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
-
-                // border: Border.all(
-                //   color: Colors.grey,
-                //   width: 0.5,
-                // ),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -483,12 +322,183 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void showChangeUrlDialog() {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Container(
+          // margin : const EdgeInsets.only(top: 2),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          // margin : const EdgeInsets.only(top: 2),
+          child: Center(
+            child: Text(
+                "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 6)).day < 10 ? "0${appBarTitle.add(const Duration(days: 6)).day}" : appBarTitle.add(const Duration(days: 6)).day}/${appBarTitle.add(const Duration(days: 6)).month < 10 ? "0${appBarTitle.add(const Duration(days: 6)).month}" : appBarTitle.add(const Duration(days: 6)).month}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+          ),
+        ),
+        toolbarHeight: 36,
+        backgroundColor: Colors.grey[100],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              updateMultipleSchedules();
+              initMapOfColors(
+                  timetable.all_events, AppTheme.listOfColorsForCourses);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Center(
+                      child: Text(
+                    "Up to date !",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  duration: const Duration(milliseconds: 1000),
+                  backgroundColor: Colors.green[300],
+                  elevation: 10,
+                  // we add a margin to the toast and borderradius
+                  margin: const EdgeInsets.all(10),
+                  behavior: SnackBarBehavior.floating,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  animation: CurvedAnimation(
+                      parent: const AlwaysStoppedAnimation(1),
+                      curve: Curves.easeInOut),
+                ),
+              );
+            },
+          ),
+          IconButton(
+              onPressed: () {
+                showChangeUrlDialog(context);
+              },
+              icon: const Icon(Icons.link)),
+          IconButton(
+              onPressed:
+                  // go back to the first page
+                  () => goToFirstWeek(),
+              icon: const Icon(Icons.home))
+        ],
+      ),
+      body: Row(
+        children: [
+          // Première colonne pour les horaires
+          SizedBox(
+            width: 40,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 19),
+                  for (var hour in [
+                    '8:00',
+                    '9:00',
+                    '10:00',
+                    '11:00',
+                    '12:00',
+                    '13:00',
+                    '14:00',
+                    '15:00',
+                    '16:00',
+                    '17:00',
+                    '18:00',
+                  ])
+                    Column(
+                      children: [
+                        Container(
+                          alignment: Alignment.centerRight,
+                          margin: const EdgeInsets.only(bottom: 1),
+                          height: GLOBAL_HEIGHT,
+                          color: Colors.white,
+                          child: Text(
+                            "$hour-",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
+                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
+                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // Deuxième colonne pour les jours et la PageView
+          Expanded(
+            child: Column(
+              children: [
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                      Flexible(
+                        child: Container(
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                          ),
+                          padding: const EdgeInsets.all(1),
+                          child: Center(
+                            child: Text(
+                              maxLines: 1,
+                              dayWeek,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (int index) {
+                      var newAppBarTitle = Timetable.getMonday(DateTime.now())
+                          .add(Duration(days: index * 7));
+
+                      updateDayWeekDynamic(newAppBarTitle);
+                    },
+                    itemCount: schedules.length,
+                    itemBuilder: (context, index) {
+                      return buildTimetable(schedules[index]);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 5),
+        ],
+      ),
+    );
+  }
+
+  void showChangeUrlDialog(BuildContext context) {
     String newUrl = ""; // Variable pour stocker le nouvel URL
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: const Text('Change URL'),
           content: Column(
@@ -511,11 +521,36 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (newUrl.isNotEmpty) {
+                if (newUrl.isNotEmpty && isVAlide(newUrl)) {
                   setState(() {
                     timetable.url = newUrl;
+                    updateMultipleSchedules();
                   });
-                  updateMultipleSchedules();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Center(
+                          child: Text(
+                        "Link up to date !",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
+                      duration: const Duration(milliseconds: 1000),
+                      backgroundColor: Colors.green[300],
+                      elevation: 10,
+                      // we add a margin to the toast and borderradius
+                      margin: const EdgeInsets.all(10),
+                      behavior: SnackBarBehavior.floating,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                      animation: CurvedAnimation(
+                          parent: const AlwaysStoppedAnimation(1),
+                          curve: Curves.easeInOut),
+                    ),
+                  );
                 }
                 Navigator.pop(context);
               },
