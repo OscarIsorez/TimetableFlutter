@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,8 @@ class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   String url = "";
   List<WeeklySchedule> schedules = [];
-  List<Event> all_events = [];
+  // ignore: non_constant_identifier_names
+  var all_events = <Event>[];
 
   // ------------------ CONSTRUCTOR ------------------ //
 
@@ -19,41 +21,25 @@ class Timetable {
   // ------------------ METHODS ------------------ //
 
   Future<List<WeeklySchedule>> generateTimetable() async {
+    
 
-    // schedules = []; REMOVES COLORS OR NEW FUNC
+    // schedules = [];
     // all_events = [];
 
 
     final response = await http.get(Uri.parse(url));
 
-    print(response.statusCode);
+    print("generateTimetable() called " +  response.statusCode.toString());
+    print(url);
+
     if (response.statusCode != 200) {
-      AlertDialog(
-        title: const Text('Error'),
-        content: const SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text('Error while fetching data'),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Retry'),
-            onPressed: () {
-              generateTimetable();
-            },
-          ),
-        ],
-      );
-      return <WeeklySchedule>[];
+      return schedules;
     }
 
     final body = response.body;
 
     final file = await writeICSData(body);
 
-    // we fill  the list of events from file
     final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
     for (var i = 0; i < icsObj.data.length; i++) {

@@ -25,7 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<WeeklySchedule> schedules = [];
 
-  Map<String, Color> MyColors = {};
+  static Map<String, Color> MyColors = {};
 
   final TextEditingController _urlController = TextEditingController();
 
@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> updateMultipleSchedules() async {
     var tpSchudles = await timetable.generateTimetable();
     setState(() {
-      schedules = tpSchudles; 
+      schedules = tpSchudles;
     });
   }
 
@@ -58,9 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var shuffledColors = List.from(colors)..shuffle();
     var index = 0;
-    print(events.length);
     for (var event in events) {
-      print(event.summary);
       if (index == shuffledColors.length) {
         index = 0;
       }
@@ -72,6 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       index++;
     }
+    print("event.length : ${events.length}");
   }
 
   void goToFirstWeek() {
@@ -109,6 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     updateMultipleSchedules();
+    print("initState");
+    print(timetable.all_events.length);
+    print(timetable.schedules.length);
     initMapOfColors(timetable.all_events, AppTheme.listOfColorsForCourses);
   }
 
@@ -268,7 +270,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                       15),
               decoration: BoxDecoration(
-                // if the event.contain("CC")  color is  red else MyColors[eventAtTime.summary.substring(0, 3)]
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
                     : MyColors[eventAtTime.summary.substring(0, 3)],
