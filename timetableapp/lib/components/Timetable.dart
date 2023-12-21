@@ -1,14 +1,20 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
+import 'package:timetableapp/pages/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
+  static Map<String, Color> MyColors = {};
+
   String url = "";
   List<WeeklySchedule> schedules = [];
   // ignore: non_constant_identifier_names
@@ -20,16 +26,38 @@ class Timetable {
 
   // ------------------ METHODS ------------------ //
 
+
+  void initMapOfColors(List<Event> events, List<Color?> colors) {
+    print("intiMapOfColors");
+    MyColors.clear();
+
+    var shuffledColors = List.from(colors)..shuffle();
+    var index = 0;
+    for (var event in events) {
+      if (index == shuffledColors.length) {
+        index = 0;
+      }
+      if (event.summary.contains("CC")) {
+        MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
+      } else {
+        MyColors.putIfAbsent(
+            event.summary.substring(0, 3), () => shuffledColors[index]!);
+      }
+      index++;
+    }
+    print("event.length : ${events.length}");
+  }
+
   Future<List<WeeklySchedule>> generateTimetable() async {
     
 
-    // schedules = [];
-    // all_events = [];
+    schedules = [];
+    all_events = [];
 
 
     final response = await http.get(Uri.parse(url));
 
-    print("generateTimetable() called " +  response.statusCode.toString());
+    print("generateTimetable() called ${response.statusCode}");
     print(url);
 
     if (response.statusCode != 200) {
@@ -55,8 +83,22 @@ class Timetable {
       all_events.add(event);
     }
     buildschedules();
+    initMapOfColors(all_events, AppTheme.listOfColorsForCourses);
+
 
     return schedules;
+  }
+
+  // Méthode pour récupérer l'URL stockée dans les préférences partagées
+  Future<String?> getStoredUrl() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('timetable_url');
+  }
+
+  // Méthode pour sauvegarder l'URL dans les préférences partagées
+  Future<void> saveUrlToPreferences(String url) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('timetable_url', url);
   }
 
   // ignore: non_constant_identifier_names

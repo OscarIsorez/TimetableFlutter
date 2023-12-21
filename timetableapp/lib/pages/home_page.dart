@@ -4,6 +4,8 @@ import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/App_Theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -25,7 +27,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<WeeklySchedule> schedules = [];
 
-  static Map<String, Color> MyColors = {};
 
   final TextEditingController _urlController = TextEditingController();
 
@@ -46,32 +47,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> updateMultipleSchedules() async {
+
+  final storedUrl = await timetable.getStoredUrl();
+
+    final urlToUse = storedUrl ?? timetable.url;
+
+  timetable.url = urlToUse;
+
+
     var tpSchudles = await timetable.generateTimetable();
     setState(() {
       schedules = tpSchudles;
     });
   }
 
-  void initMapOfColors(List<Event> events, List<Color?> colors) {
-    print("intiMapOfColors");
-    MyColors.clear();
-
-    var shuffledColors = List.from(colors)..shuffle();
-    var index = 0;
-    for (var event in events) {
-      if (index == shuffledColors.length) {
-        index = 0;
-      }
-      if (event.summary.contains("CC")) {
-        MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
-      } else {
-        MyColors.putIfAbsent(
-            event.summary.substring(0, 3), () => shuffledColors[index]!);
-      }
-      index++;
-    }
-    print("event.length : ${events.length}");
-  }
+  
 
   void goToFirstWeek() {
     _pageController.animateToPage(0,
@@ -105,13 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() {
+  initState() {
     super.initState();
+
     updateMultipleSchedules();
     print("initState");
     print(timetable.all_events.length);
     print(timetable.schedules.length);
-    initMapOfColors(timetable.all_events, AppTheme.listOfColorsForCourses);
+
   }
 
   // ignore: non_constant_identifier_names
@@ -201,27 +192,8 @@ class _MyHomePageState extends State<MyHomePage> {
       "(",
       ")",
       "Prioritaire",
-      "200",
-      "201",
-      "202",
-      "203",
-      "204",
-      "205",
-      "206",
-      "207",
-      "208",
-      "209",
-      "210",
-      "211",
-      "212",
-      "213",
-      "214",
-      "215",
-      "216",
-      "217",
-      "218",
-      "219",
-      "220"
+
+
     ];
 
     List<Widget> columnChildren = [];
@@ -272,7 +244,7 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
-                    : MyColors[eventAtTime.summary.substring(0, 3)],
+                    : Timetable.MyColors[eventAtTime.summary.substring(0, 3)],
 
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
@@ -352,8 +324,8 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               updateMultipleSchedules();
-              initMapOfColors(
-                  timetable.all_events, AppTheme.listOfColorsForCourses);
+              // initMapOfColors(
+              //     timetable.all_events, AppTheme.listOfColorsForCourses);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -396,9 +368,9 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Row(
         children: [
           // Première colonne pour les horaires
-          SizedBox(
-            width: 40,
-            child: SingleChildScrollView(
+          SingleChildScrollView(
+            child: SizedBox(
+              width: 40,
               child: Column(
                 children: [
                   const SizedBox(height: 19),
@@ -440,7 +412,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-
+      
           // Deuxième colonne pour les jours et la PageView
           Expanded(
             child: Column(
@@ -476,7 +448,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPageChanged: (int index) {
                       var newAppBarTitle = Timetable.getMonday(DateTime.now())
                           .add(Duration(days: index * 7));
-
+      
                       updateDayWeekDynamic(newAppBarTitle);
                     },
                     itemCount: schedules.length,
@@ -527,6 +499,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     timetable.url = newUrl;
                     updateMultipleSchedules();
                   });
+                  timetable.saveUrlToPreferences(newUrl);
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
