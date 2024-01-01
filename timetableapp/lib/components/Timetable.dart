@@ -19,6 +19,7 @@ class Timetable {
   List<WeeklySchedule> schedules = [];
   // ignore: non_constant_identifier_names
   var all_events = <Event>[];
+  var infosToShare = "";
 
   // ------------------ CONSTRUCTOR ------------------ //
 
@@ -26,9 +27,8 @@ class Timetable {
 
   // ------------------ METHODS ------------------ //
 
-
   void initMapOfColors(List<Event> events, List<Color?> colors) {
-    print("intiMapOfColors");
+    
     MyColors.clear();
 
     var shuffledColors = List.from(colors)..shuffle();
@@ -45,23 +45,18 @@ class Timetable {
       }
       index++;
     }
-    print("event.length : ${events.length}");
   }
 
-  Future<List<WeeklySchedule>> generateTimetable() async {
-    
-
+  Future<List<WeeklySchedule>>  generateTimetable() async {
     schedules = [];
     all_events = [];
 
-
     final response = await http.get(Uri.parse(url));
 
-    print("generateTimetable() called ${response.statusCode}");
-    print(url);
-
     if (response.statusCode != 200) {
+      infosToShare = "Erreur lors de la récupération de l'emploi du temps Code : ${response.statusCode}";
       return schedules;
+
     }
 
     final body = response.body;
@@ -85,23 +80,19 @@ class Timetable {
     buildschedules();
     initMapOfColors(all_events, AppTheme.listOfColorsForCourses);
 
-
     return schedules;
   }
 
-  // Méthode pour récupérer l'URL stockée dans les préférences partagées
   Future<String?> getStoredUrl() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('timetable_url');
   }
 
-  // Méthode pour sauvegarder l'URL dans les préférences partagées
   Future<void> saveUrlToPreferences(String url) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('timetable_url', url);
   }
 
-  // ignore: non_constant_identifier_names
   List<Event> all_events_sorted() {
     List<Event> allEventsS = [];
     allEventsS = all_events;

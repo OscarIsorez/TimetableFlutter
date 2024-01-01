@@ -6,7 +6,6 @@ import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
@@ -27,13 +26,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<WeeklySchedule> schedules = [];
 
-
   final TextEditingController _urlController = TextEditingController();
 
   Color? mygrey = Colors.grey[100];
 
-  // ignore: constant_identifier_names
-  static const double GLOBAL_HEIGHT = 15;
+  static const double globalHeight = 15;
 
   bool isVAlide(String url) {
     return url.contains("https://") || url.contains("http://") ? true : false;
@@ -47,21 +44,47 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> updateMultipleSchedules() async {
-
-  final storedUrl = await timetable.getStoredUrl();
+    
+    final storedUrl = await timetable.getStoredUrl();
 
     final urlToUse = storedUrl ?? timetable.url;
 
-  timetable.url = urlToUse;
+    timetable.url = urlToUse;
 
 
-    var tpSchudles = await timetable.generateTimetable();
-    setState(() {
-      schedules = tpSchudles;
-    });
+    var newSchedule = await timetable.generateTimetable();
+
+    if (newSchedule.isNotEmpty) {
+      setState(() {
+        schedules = newSchedule;
+      });
+    }
+    else {
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(timetable.infosToShare),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
-
-  
 
   void goToFirstWeek() {
     _pageController.animateToPage(0,
@@ -97,15 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
-
     updateMultipleSchedules();
-    print("initState");
-    print(timetable.all_events.length);
-    print(timetable.schedules.length);
-
   }
 
-  // ignore: non_constant_identifier_names
 
   void showEventDialog(Event event) {
     showDialog(
@@ -125,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(event.location.substring(3)),
+              Text(event.location),
               const SizedBox(height: 3),
               const Text(
                 "Start",
@@ -192,8 +209,6 @@ class _MyHomePageState extends State<MyHomePage> {
       "(",
       ")",
       "Prioritaire",
-
-
     ];
 
     List<Widget> columnChildren = [];
@@ -217,7 +232,6 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       for (String toremove in patternsToRemove) {
-        // eventAtTime.summary = eventAtTime.summary.replaceAll(toremove, "");
         eventAtTime.location = eventAtTime.location.replaceAll(toremove, "");
       }
 
@@ -236,7 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 left: 2,
                 right: 2,
               ),
-              height: (GLOBAL_HEIGHT *
+              height: (globalHeight *
                       (eventAtTime.end.difference(eventAtTime.start).inMinutes /
                           15)) +
                   (eventAtTime.end.difference(eventAtTime.start).inMinutes /
@@ -245,7 +259,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
                     : Timetable.MyColors[eventAtTime.summary.substring(0, 3)],
-
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: SingleChildScrollView(
@@ -392,7 +405,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Container(
                           alignment: Alignment.centerRight,
                           margin: const EdgeInsets.only(bottom: 1),
-                          height: GLOBAL_HEIGHT,
+                          height: globalHeight,
                           color: Colors.white,
                           child: Text(
                             "$hour-",
@@ -403,16 +416,16 @@ class _MyHomePageState extends State<MyHomePage> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
-                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
-                        MySpace(color: Colors.white, height: GLOBAL_HEIGHT),
+                        MySpace(color: Colors.white, height: globalHeight),
+                        MySpace(color: Colors.white, height: globalHeight),
+                        MySpace(color: Colors.white, height: globalHeight),
                       ],
                     ),
                 ],
               ),
             ),
           ),
-      
+
           // Deuxième colonne pour les jours et la PageView
           Expanded(
             child: Column(
@@ -448,7 +461,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPageChanged: (int index) {
                       var newAppBarTitle = Timetable.getMonday(DateTime.now())
                           .add(Duration(days: index * 7));
-      
+
                       updateDayWeekDynamic(newAppBarTitle);
                     },
                     itemCount: schedules.length,
@@ -497,8 +510,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (newUrl.isNotEmpty && isVAlide(newUrl)) {
                   setState(() {
                     timetable.url = newUrl;
-                    updateMultipleSchedules();
                   });
+                  updateMultipleSchedules();
                   timetable.saveUrlToPreferences(newUrl);
 
                   ScaffoldMessenger.of(context).showSnackBar(
