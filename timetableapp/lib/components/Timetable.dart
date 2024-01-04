@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -28,7 +30,6 @@ class Timetable {
   // ------------------ METHODS ------------------ //
 
   void initMapOfColors(List<Event> events, List<Color?> colors) {
-    
     MyColors.clear();
 
     var shuffledColors = List.from(colors)..shuffle();
@@ -47,16 +48,16 @@ class Timetable {
     }
   }
 
-  Future<List<WeeklySchedule>>  generateTimetable() async {
+  Future<List<WeeklySchedule>> generateTimetable() async {
     schedules = [];
     all_events = [];
 
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode != 200) {
-      infosToShare = "Erreur lors de la récupération de l'emploi du temps Code : ${response.statusCode}";
+      infosToShare =
+          "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
       return schedules;
-
     }
 
     final body = response.body;
@@ -146,5 +147,50 @@ class Timetable {
     final file = File('${appStorage.path}/data.ics');
     await file.writeAsString(data);
     return file;
+  }
+
+  String toJson() {
+    String json = "{";
+
+    json += "\"url\": \"$url\",";
+    json += "\"lastUpdate\": \"${DateTime.now().toString()}\",";
+    json += "\"schedules\": [";
+
+    for (var i = 0; i < schedules.length; i++) {
+      json += schedules[i].toString();
+      if (i != schedules.length - 1) {
+        json += ",";
+      }
+    }
+    return json + "]}";
+  }
+
+  static Timetable fromJson(Map<String, dynamic> json) {
+    Timetable timetable = Timetable(url: json["url"]);
+    timetable.schedules = [];
+    for (var i = 0; i < json["schedules"].length; i++) {
+      timetable.schedules.add(WeeklySchedule.fromJson(json["schedules"][i]));
+    }
+    return timetable;
+  }
+
+  Future<void> saveTimetable(Timetable timetable) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Convert Timetable to JSON and store it as a String
+    final timetableJson = timetable.toJson();
+    prefs.setString('timetable', timetableJson);
+  }
+
+  Future<Timetable?> loadTimetable() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final timetableJson = prefs.getString('timetable');
+
+    if (timetableJson != null) {
+      return Timetable.fromJson(jsonDecode(timetableJson));
+    } else {
+      return null;
+    }
   }
 }

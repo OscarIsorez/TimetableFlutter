@@ -70,4 +70,16 @@ class WeeklySchedule {
     }
   }
 
+  static WeeklySchedule fromJson(Map<String, dynamic> json) {
+    
+    return WeeklySchedule(
+      monday: json['monday'],
+      tuesday: json['tuesday'],
+      wednesday: json['wednesday'],
+      thursday: json['thursday'],
+      friday: json['friday'],
+    );
+  }
+
+
 }

@@ -25,5 +25,12 @@ class Event {
     );
   }
 
+  Event.fromJson(Map<String, dynamic> json)
+      : summary = json['summary'],
+        description = json['description'],
+        start = json['start'].toDateTime()!,
+        end = json['end'].toDateTime()!,
+        location = json['location'];
+
 }
 

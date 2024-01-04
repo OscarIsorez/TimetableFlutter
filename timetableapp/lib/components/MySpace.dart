@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 class MySpace extends StatelessWidget {
   Color? color;
   double? height;
+  double? width;
 
-  MySpace({super.key, required this.color, required  this.height});
+  MySpace({super.key, required this.color, required  this.height,double? width });
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +15,7 @@ class MySpace extends StatelessWidget {
       padding: const EdgeInsets.only(top: 1),
       child: Container(
         height: height,
+        width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           color: color,
