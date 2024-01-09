@@ -21,6 +21,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
+  final ScrollController _scrollController = ScrollController();
   Timetable timetable = Timetable(
       url:
           "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
@@ -59,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         schedules = newSchedule;
       });
+      timetable.saveTimetable(timetable);
     } else {
       // ignore: use_build_context_synchronously
       showDialog(
@@ -90,13 +92,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     SnackBarPopUp.callSnackBar(
                         "Backup loaded", context, Colors.green[300]);
                   } else {
-                    
                     SnackBarPopUp.callSnackBar(
                         "No backup found", context, Colors.red[300]);
                   }
 
                   Navigator.pop(context);
-
                 },
               ),
             ],
@@ -114,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget buildTimetable(WeeklySchedule schedule) {
     return SingleChildScrollView(
+      controller: _scrollController,
       child: Column(children: [
         Row(children: [
           for (var day in schedule.events)
@@ -204,7 +205,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildDay(List<Event> day) {
-
     List<String> patternsToRemove = [
       "(006)",
       "(001)",
@@ -357,8 +357,6 @@ class _MyHomePageState extends State<MyHomePage> {
               updateMultipleSchedules();
               // initMapOfColors(
               //     timetable.all_events, AppTheme.listOfColorsForCourses);
-
-
             },
           ),
           IconButton(
@@ -373,7 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: const Icon(Icons.home))
         ],
       ),
-      body:Expanded(
+      body: Expanded(
         child: Row(
           children: [
             // Première colonne pour les horaires
@@ -422,7 +420,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-        
+
             // Deuxième colonne pour les jours et la PageView
             Expanded(
               child: Column(
@@ -458,7 +456,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPageChanged: (int index) {
                         var newAppBarTitle = Timetable.getMonday(DateTime.now())
                             .add(Duration(days: index * 7));
-        
+
                         updateDayWeekDynamic(newAppBarTitle);
                       },
                       itemCount: schedules.length,
