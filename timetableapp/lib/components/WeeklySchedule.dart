@@ -81,5 +81,50 @@ class WeeklySchedule {
     );
   }
 
+  String toJson() {
+    String json = "{";
+    json += "\"monday\": [";
+    for (var i = 0; i < monday.length; i++) {
+      json += monday[i].toJson();
+      if (i != monday.length - 1) {
+        json += ",";
+      }
+    }
+    json += "],";
+    json += "\"tuesday\": [";
+    for (var i = 0; i < tuesday.length; i++) {
+      json += tuesday[i].toJson();
+      if (i != tuesday.length - 1) {
+        json += ",";
+      }
+    }
+    json += "],";
+    json += "\"wednesday\": [";
+    for (var i = 0; i < wednesday.length; i++) {
+      json += wednesday[i].toJson();
+      if (i != wednesday.length - 1) {
+        json += ",";
+      }
+    }
+    json += "],";
+    json += "\"thursday\": [";
+    for (var i = 0; i < thursday.length; i++) {
+      json += thursday[i].toJson();
+      if (i != thursday.length - 1) {
+        json += ",";
+      }
+    }
+    json += "],";
+    json += "\"friday\": [";
+    for (var i = 0; i < friday.length; i++) {
+      json += friday[i].toJson();
+      if (i != friday.length - 1) {
+        json += ",";
+      }
+    }
+    json += "]}";
+    return json;
+  }
+
 
 }

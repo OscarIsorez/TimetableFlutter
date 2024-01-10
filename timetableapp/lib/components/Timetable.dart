@@ -157,7 +157,7 @@ class Timetable {
     json += "\"schedules\": [";
 
     for (var i = 0; i < schedules.length; i++) {
-      json += schedules[i].toString();
+      json += schedules[i].toJson();
       if (i != schedules.length - 1) {
         json += ",";
       }
@@ -179,13 +179,16 @@ class Timetable {
 
     // Convert Timetable to JSON and store it as a String
     final timetableJson = timetable.toJson();
+
     prefs.setString('timetable', timetableJson);
   }
 
   Future<Timetable?> loadTimetable() async {
     final prefs = await SharedPreferences.getInstance();
+    
 
     final timetableJson = prefs.getString('timetable');
+    print(timetableJson);
 
     if (timetableJson != null) {
       return Timetable.fromJson(jsonDecode(timetableJson));

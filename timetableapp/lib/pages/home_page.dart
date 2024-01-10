@@ -91,9 +91,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                     SnackBarPopUp.callSnackBar(
                         "Backup loaded", context, Colors.green[300]);
+
+                    Navigator.pop(context);
                   } else {
                     SnackBarPopUp.callSnackBar(
                         "No backup found", context, Colors.red[300]);
+                    Navigator.pop(context);
                   }
 
                   Navigator.pop(context);
