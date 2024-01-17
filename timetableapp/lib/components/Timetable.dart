@@ -179,13 +179,13 @@ class Timetable {
 
     // Convert Timetable to JSON and store it as a String
     final timetableJson = timetable.toJson();
+    print(timetableJson);
 
     prefs.setString('timetable', timetableJson);
   }
 
   Future<Timetable?> loadTimetable() async {
     final prefs = await SharedPreferences.getInstance();
-    
 
     final timetableJson = prefs.getString('timetable');
     print(timetableJson);

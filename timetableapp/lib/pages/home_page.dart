@@ -22,9 +22,23 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
   final ScrollController _scrollController = ScrollController();
-  Timetable timetable = Timetable(
-      url:
-          "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/o35ex53R.shu");
+
+  static Future<String?> selectUrlFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final url = prefs.getString('url') ?? "";
+    if (url.isNotEmpty) {
+      return url;
+    } else {
+      return  null;
+    }
+  }
+
+  static String SetUrlFromStorage() {
+    selectUrlFromStorage().then((value) => value);
+    return selectUrlFromStorage().toString();
+  }
+
+  Timetable timetable = Timetable(url: SetUrlFromStorage());
 
   DateTime appBarTitle = Timetable.getMonday(DateTime.now());
 
@@ -61,6 +75,8 @@ class _MyHomePageState extends State<MyHomePage> {
         schedules = newSchedule;
       });
       timetable.saveTimetable(timetable);
+      SnackBarPopUp.callSnackBar(
+          "Timetable up to date", context, Colors.green[300]);
     } else {
       // ignore: use_build_context_synchronously
       showDialog(
@@ -334,21 +350,21 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Container(
-          // margin : const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             border: Border.all(
               color: Colors.black,
-              width: 2,
+              width: 1,
             ),
             borderRadius: BorderRadius.circular(5),
           ),
           // margin : const EdgeInsets.only(top: 2),
-          child: Center(
-            child: Text(
-                "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 4)).day < 10 ? "0${appBarTitle.add(const Duration(days: 4)).day}" : appBarTitle.add(const Duration(days: 4)).day}/${appBarTitle.add(const Duration(days: 4)).month < 10 ? "0${appBarTitle.add(const Duration(days: 4)).month}" : appBarTitle.add(const Duration(days: 4)).month}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                )),
+          child: Text(
+            "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 4)).day < 10 ? "0${appBarTitle.add(const Duration(days: 4)).day}" : appBarTitle.add(const Duration(days: 4)).day}/${appBarTitle.add(const Duration(days: 4)).month < 10 ? "0${appBarTitle.add(const Duration(days: 4)).month}" : appBarTitle.add(const Duration(days: 4)).month}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
           ),
         ),
         toolbarHeight: 36,
@@ -358,8 +374,6 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               updateMultipleSchedules();
-              // initMapOfColors(
-              //     timetable.all_events, AppTheme.listOfColorsForCourses);
             },
           ),
           IconButton(
