@@ -21,7 +21,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
-  final ScrollController _scrollController = ScrollController();
 
   static Future<String?> selectUrlFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
@@ -29,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (url.isNotEmpty) {
       return url;
     } else {
-      return  null;
+      return null;
     }
   }
 
@@ -133,7 +132,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget buildTimetable(WeeklySchedule schedule) {
     return SingleChildScrollView(
-      controller: _scrollController,
       child: Column(children: [
         Row(children: [
           for (var day in schedule.events)
@@ -349,23 +347,39 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.black,
-              width: 1,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.black,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              // margin : const EdgeInsets.only(top: 2),
+              child: Text(
+                "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 4)).day < 10 ? "0${appBarTitle.add(const Duration(days: 4)).day}" : appBarTitle.add(const Duration(days: 4)).day}/${appBarTitle.add(const Duration(days: 4)).month < 10 ? "0${appBarTitle.add(const Duration(days: 4)).month}" : appBarTitle.add(const Duration(days: 4)).month}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
             ),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          // margin : const EdgeInsets.only(top: 2),
-          child: Text(
-            "${appBarTitle.day < 10 ? "0${appBarTitle.day}" : appBarTitle.day}/${appBarTitle.month < 10 ? "0${appBarTitle.month}" : appBarTitle.month} to ${appBarTitle.add(const Duration(days: 4)).day < 10 ? "0${appBarTitle.add(const Duration(days: 4)).day}" : appBarTitle.add(const Duration(days: 4)).day}/${appBarTitle.add(const Duration(days: 4)).month < 10 ? "0${appBarTitle.add(const Duration(days: 4)).month}" : appBarTitle.add(const Duration(days: 4)).month}",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
+            SizedBox(width: 5),
+            Container(
+              child: const Text(
+                "Updated :"
+                // ${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month}"
+                ,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            )
+          ],
         ),
         toolbarHeight: 36,
         backgroundColor: Colors.grey[100],

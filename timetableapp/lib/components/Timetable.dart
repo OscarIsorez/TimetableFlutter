@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   static Map<String, Color> MyColors = {};
+  late DateTime lastUpdate;
 
   String url = "";
   List<WeeklySchedule> schedules = [];
@@ -48,6 +49,10 @@ class Timetable {
     }
   }
 
+  Future<List<WeeklySchedule>> generateEmptySchedules() async {
+    return [];
+  }
+
   Future<List<WeeklySchedule>> generateTimetable() async {
     schedules = [];
     all_events = [];
@@ -57,7 +62,7 @@ class Timetable {
     if (response.statusCode != 200) {
       infosToShare =
           "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
-      return schedules;
+      return generateEmptySchedules();
     }
 
     final body = response.body;
@@ -167,6 +172,7 @@ class Timetable {
 
   static Timetable fromJson(Map<String, dynamic> json) {
     Timetable timetable = Timetable(url: json["url"]);
+    timetable.lastUpdate = DateTime.parse(json["lastUpdate"]);
     timetable.schedules = [];
     for (var i = 0; i < json["schedules"].length; i++) {
       timetable.schedules.add(WeeklySchedule.fromJson(json["schedules"][i]));
