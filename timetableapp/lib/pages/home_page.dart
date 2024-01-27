@@ -132,27 +132,42 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget buildTimetable(WeeklySchedule schedule) {
     return SingleChildScrollView(
-      child: Column(children: [
-        Row(children: [
-          for (var day in schedule.events)
-            if (day.isEmpty)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < 46; i++)
-                        MySpace(color: mygrey, height: 15),
-                    ],
-                  ),
+      scrollDirection: Axis.vertical,
+      child: Row(children: [
+        for (var day in schedule.events)
+          if (day.isEmpty)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < 48; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: Container(
+                          height: 15,
+                          width: 300,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: mygrey),
+                        ),
+                      )
+                  ],
                 ),
-              )
-            else
-              buildDay(day),
-        ]),
-        // const SizedBox(height: 5),
+              ),
+            )
+          else
+            buildDay(day),
       ]),
     );
+  }
+
+  String generateLastUpdateString() {
+    if (timetable.lastUpdate != null) {
+      return "${timetable.lastUpdate!.day < 10 ? "0${timetable.lastUpdate!.day}" : timetable.lastUpdate!.day}/${timetable.lastUpdate!.month < 10 ? "0${timetable.lastUpdate!.month}" : timetable.lastUpdate!.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate!.hour}:${timetable.lastUpdate!.minute < 10 ? "0${timetable.lastUpdate!.minute}" : timetable.lastUpdate!.minute}";
+    } else {
+      return "";
+    }
   }
 
   @override
@@ -251,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage> {
         day[0].start.year, day[0].start.month, day[0].start.day, 8, 15);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 19, 45);
+        day[0].start.year, day[0].start.month, day[0].start.day, 20, 15);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
@@ -367,18 +382,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            SizedBox(width: 5),
-            Container(
-              child: const Text(
-                "Updated :"
-                // ${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month}"
-                ,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                ),
-              ),
-            )
+            // SizedBox(width: 5),
+            // Container(
+            //   child: Text(
+            //     "Updated :  $generateLastUpdateString ",
+            //     style: TextStyle(
+            //       fontWeight: FontWeight.bold,
+            //       fontSize: 10,
+            //     ),
+            //   ),
+            // )
           ],
         ),
         toolbarHeight: 36,
@@ -402,106 +415,106 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: const Icon(Icons.home))
         ],
       ),
-      body: Expanded(
-        child: Row(
-          children: [
-            // Première colonne pour les horaires
-            SizedBox(
-              width: 40,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 19),
-                    for (var hour in [
-                      '8:00',
-                      '9:00',
-                      '10:00',
-                      '11:00',
-                      '12:00',
-                      '13:00',
-                      '14:00',
-                      '15:00',
-                      '16:00',
-                      '17:00',
-                      '18:00',
-                      '19:00',
-                    ])
-                      Column(
-                        children: [
-                          Container(
-                            alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.only(bottom: 1),
-                            height: globalHeight,
-                            color: Colors.white,
-                            child: Text(
-                              "$hour-",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          MySpace(color: Colors.white, height: globalHeight),
-                          MySpace(color: Colors.white, height: globalHeight),
-                          MySpace(color: Colors.white, height: globalHeight),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Deuxième colonne pour les jours et la PageView
-            Expanded(
+      body: Row(
+        children: [
+          // Première colonne pour les horaires
+          SizedBox(
+            width: 40,
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
-                      for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-                        Flexible(
-                          child: Container(
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                  const SizedBox(height: 19),
+                  for (var hour in [
+                    '8:00',
+                    '9:00',
+                    '10:00',
+                    '11:00',
+                    '12:00',
+                    '13:00',
+                    '14:00',
+                    '15:00',
+                    '16:00',
+                    '17:00',
+                    '18:00',
+                    '19:00',
+                    '20:00',
+                    '21:00'
+                  ])
+                    Column(
+                      children: [
+                        Container(
+                          alignment: Alignment.centerRight,
+                          margin: const EdgeInsets.only(bottom: 1),
+                          height: globalHeight,
+                          color: Colors.white,
+                          child: Text(
+                            "$hour-",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
                             ),
-                            padding: const EdgeInsets.all(1),
-                            child: Center(
-                              child: Text(
-                                maxLines: 1,
-                                dayWeek,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        MySpace(color: Colors.white, height: globalHeight),
+                        MySpace(color: Colors.white, height: globalHeight),
+                        MySpace(color: Colors.white, height: globalHeight),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // Deuxième colonne pour les jours et la PageView
+          Expanded(
+            child: Column(
+              children: [
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                      Expanded(
+                        child: Container(
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                          ),
+                          padding: const EdgeInsets.all(1),
+                          child: Center(
+                            child: Text(
+                              maxLines: 1,
+                              dayWeek,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (int index) {
-                        var newAppBarTitle = Timetable.getMonday(DateTime.now())
-                            .add(Duration(days: index * 7));
+                      ),
+                  ],
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (int index) {
+                      var newAppBarTitle = Timetable.getMonday(DateTime.now())
+                          .add(Duration(days: index * 7));
 
-                        updateDayWeekDynamic(newAppBarTitle);
-                      },
-                      itemCount: schedules.length,
-                      itemBuilder: (context, index) {
-                        return buildTimetable(schedules[index]);
-                      },
-                    ),
+                      updateDayWeekDynamic(newAppBarTitle);
+                    },
+                    itemCount: schedules.length,
+                    itemBuilder: (context, index) {
+                      return buildTimetable(schedules[index]);
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(width: 5),
-          ],
-        ),
+          ),
+          const SizedBox(width: 5),
+        ],
       ),
     );
   }
