@@ -131,35 +131,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildTimetable(WeeklySchedule schedule) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Row(children: [
-        for (var day in schedule.events)
-          if (day.isEmpty)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Column(
-                  children: [
-                    for (var i = 0; i < 48; i++)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 1),
-                        child: Container(
-                          height: 15,
-                          width: 300,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: mygrey),
-                        ),
-                      )
-                  ],
-                ),
-              ),
-            )
-          else
-            buildDay(day),
-      ]),
-    );
+    return Row(children: [
+      for (var day in schedule.events)
+        if (day.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Column(
+              children: [
+                for (var i = 0; i < 48; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Container(
+                      height: 15,
+                      width: 60,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: mygrey),
+                    ),
+                  )
+              ],
+            ),
+          )
+        else
+          buildDay(day),
+    ]);
   }
 
   String generateLastUpdateString() {
@@ -227,7 +222,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(event.description),
+              Text(event.description.toString().replaceAll("\n", " - ")),
               const SizedBox(height: 3),
             ],
           ),
@@ -291,7 +286,6 @@ class _MyHomePageState extends State<MyHomePage> {
             onTap: () {
               showEventDialog(eventAtTime);
             },
-            // may use another widget here
             child: Container(
               // on centre le contenu
               alignment: Alignment.center,
@@ -316,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     Center(
                       child: Text(
-                          //
+                          // overflow: TextOverflow.visible,
                           "${eventAtTime.summary}\n",
                           textAlign: TextAlign.center,
                           style: const TextStyle(
@@ -326,6 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           )),
                     ),
                     Text(
+                      // overflow: TextOverflow.visible,
                       "${eventAtTime.location}\n",
                       textAlign: TextAlign.center,
                       style: const TextStyle(
@@ -348,12 +343,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    return Expanded(
-      child: SizedBox(
-        width: 65,
-        child: Column(
-          children: columnChildren,
-        ),
+    return SizedBox(
+      width: 60,
+      child: Column(
+        children: columnChildren,
       ),
     );
   }
@@ -382,16 +375,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            // SizedBox(width: 5),
-            // Container(
-            //   child: Text(
-            //     "Updated :  $generateLastUpdateString ",
-            //     style: TextStyle(
-            //       fontWeight: FontWeight.bold,
-            //       fontSize: 10,
-            //     ),
-            //   ),
-            // )
           ],
         ),
         toolbarHeight: 36,
@@ -415,15 +398,15 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: const Icon(Icons.home))
         ],
       ),
-      body: Row(
-        children: [
-          // Première colonne pour les horaires
-          SizedBox(
-            width: 40,
-            child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Row(
+          children: [
+            // Première colonne pour les horaires
+            SizedBox(
+              width: 40,
               child: Column(
                 children: [
-                  const SizedBox(height: 19),
+                  const SizedBox(height: 13),
                   for (var hour in [
                     '8:00',
                     '9:00',
@@ -464,57 +447,63 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-          ),
 
-          // Deuxième colonne pour les jours et la PageView
-          Expanded(
-            child: Column(
-              children: [
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-                      Expanded(
-                        child: Container(
-                          height: 22,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                          ),
-                          padding: const EdgeInsets.all(1),
-                          child: Center(
-                            child: Text(
-                              maxLines: 1,
-                              dayWeek,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
+            // Deuxième colonne pour les jours et la PageView
+            Container(
+              height: 920,
+              width: 305,
+              child: Column(
+                children: [
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                        Flexible(
+                          flex: 1,
+                          child: Container(
+                            height: 22,
+                            // width: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                            ),
+                            padding: const EdgeInsets.all(1),
+                            child: Center(
+                              child: Text(
+                                maxLines: 1,
+                                dayWeek,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (int index) {
-                      var newAppBarTitle = Timetable.getMonday(DateTime.now())
-                          .add(Duration(days: index * 7));
-
-                      updateDayWeekDynamic(newAppBarTitle);
-                    },
-                    itemCount: schedules.length,
-                    itemBuilder: (context, index) {
-                      return buildTimetable(schedules[index]);
-                    },
+                    ],
                   ),
-                ),
-              ],
+                  Container(
+                    height: 800,
+                    width: 60 * 5,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (int index) {
+                        var newAppBarTitle = Timetable.getMonday(DateTime.now())
+                            .add(Duration(days: index * 7));
+
+                        updateDayWeekDynamic(newAppBarTitle);
+                      },
+                      itemCount: schedules.length,
+                      itemBuilder: (context, index) {
+                        return buildTimetable(schedules[index]);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 5),
-        ],
+            const SizedBox(width: 5),
+          ],
+        ),
       ),
     );
   }
