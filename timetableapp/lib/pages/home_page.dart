@@ -134,22 +134,23 @@ class _MyHomePageState extends State<MyHomePage> {
     return Row(children: [
       for (var day in schedule.events)
         if (day.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Column(
-              children: [
-                for (var i = 0; i < 48; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: Container(
-                      height: 15,
-                      width: 60,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: mygrey),
-                    ),
-                  )
-              ],
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Column(
+                children: [
+                  for (var i = 0; i < 52; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Container(
+                        height: 15,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: mygrey),
+                      ),
+                    )
+                ],
+              ),
             ),
           )
         else
@@ -261,7 +262,7 @@ class _MyHomePageState extends State<MyHomePage> {
         day[0].start.year, day[0].start.month, day[0].start.day, 8, 15);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 20, 15);
+        day[0].start.year, day[0].start.month, day[0].start.day, 21, 15);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
@@ -343,8 +344,8 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    return SizedBox(
-      width: 60,
+    return Flexible(
+      flex: 1,
       child: Column(
         children: columnChildren,
       ),
@@ -399,110 +400,115 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Row(
-          children: [
-            // Première colonne pour les horaires
-            SizedBox(
-              width: 40,
-              child: Column(
-                children: [
-                  const SizedBox(height: 13),
-                  for (var hour in [
-                    '8:00',
-                    '9:00',
-                    '10:00',
-                    '11:00',
-                    '12:00',
-                    '13:00',
-                    '14:00',
-                    '15:00',
-                    '16:00',
-                    '17:00',
-                    '18:00',
-                    '19:00',
-                    '20:00',
-                    '21:00'
-                  ])
-                    Column(
-                      children: [
-                        Container(
-                          alignment: Alignment.centerRight,
-                          margin: const EdgeInsets.only(bottom: 1),
-                          height: globalHeight,
-                          color: Colors.white,
-                          child: Text(
-                            "$hour-",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
+        child: Container(
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width,
+          child: Row(
+            children: [
+              // Première colonne pour les horaires
+              SizedBox(
+                width: 40,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 13),
+                    for (var hour in [
+                      '8:00',
+                      '9:00',
+                      '10:00',
+                      '11:00',
+                      '12:00',
+                      '13:00',
+                      '14:00',
+                      '15:00',
+                      '16:00',
+                      '17:00',
+                      '18:00',
+                      '19:00',
+                      '20:00',
+                      '21:00'
+                    ])
+                      Column(
+                        children: [
+                          Container(
+                            alignment: Alignment.centerRight,
+                            margin: const EdgeInsets.only(bottom: 1),
+                            height: globalHeight,
+                            color: Colors.white,
+                            child: Text(
+                              "$hour-",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        MySpace(color: Colors.white, height: globalHeight),
-                        MySpace(color: Colors.white, height: globalHeight),
-                        MySpace(color: Colors.white, height: globalHeight),
-                      ],
-                    ),
-                ],
+                          MySpace(color: Colors.white, height: globalHeight),
+                          MySpace(color: Colors.white, height: globalHeight),
+                          MySpace(color: Colors.white, height: globalHeight),
+                        ],
+                      ),
+                  ],
+                ),
               ),
-            ),
 
-            // Deuxième colonne pour les jours et la PageView
-            Container(
-              height: 920,
-              width: 305,
-              child: Column(
-                children: [
-                  const SizedBox(height: 5),
-                  Row(
+              // Deuxième colonne pour les jours et la PageView
+              Expanded(
+                child: Container(
+                  height: 920,
+                  child: Column(
                     children: [
-                      for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
-                        Flexible(
-                          flex: 1,
-                          child: Container(
-                            height: 22,
-                            // width: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                            ),
-                            padding: const EdgeInsets.all(1),
-                            child: Center(
-                              child: Text(
-                                maxLines: 1,
-                                dayWeek,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                            Flexible(
+                              flex: 1,
+                              child: Container(
+                                height: 22,
+                                // width: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                ),
+                                padding: const EdgeInsets.all(1),
+                                child: Center(
+                                  child: Text(
+                                    maxLines: 1,
+                                    dayWeek,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                        ],
+                      ),
+                      Expanded(
+                        
+                        child: PageView.builder(
+                          controller: _pageController,
+                          onPageChanged: (int index) {
+                            var newAppBarTitle =
+                                Timetable.getMonday(DateTime.now())
+                                    .add(Duration(days: index * 7));
+                
+                            updateDayWeekDynamic(newAppBarTitle);
+                          },
+                          itemCount: schedules.length,
+                          itemBuilder: (context, index) {
+                            return buildTimetable(schedules[index]);
+                          },
                         ),
+                      ),
                     ],
                   ),
-                  Container(
-                    height: 800,
-                    width: 60 * 5,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (int index) {
-                        var newAppBarTitle = Timetable.getMonday(DateTime.now())
-                            .add(Duration(days: index * 7));
-
-                        updateDayWeekDynamic(newAppBarTitle);
-                      },
-                      itemCount: schedules.length,
-                      itemBuilder: (context, index) {
-                        return buildTimetable(schedules[index]);
-                      },
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(width: 5),
-          ],
+              const SizedBox(width: 5),
+            ],
+          ),
         ),
       ),
     );
