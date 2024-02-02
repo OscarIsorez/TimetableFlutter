@@ -39,6 +39,9 @@ class Timetable {
       if (index == shuffledColors.length) {
         index = 0;
       }
+      if (MyColors.containsKey(event.summary.substring(0, 3))) {
+        continue;
+      }
       if (event.summary.contains("CC")) {
         MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
       } else {
@@ -107,7 +110,6 @@ class Timetable {
   }
 
   static DateTime getMonday(DateTime date) {
-    // we get the monday of the week of the date
     DateTime currentday = date;
     while (currentday.weekday != 1) {
       if (currentday.weekday == 7 || currentday.weekday == 6) {
@@ -117,6 +119,10 @@ class Timetable {
       }
     }
     return DateTime(currentday.year, currentday.month, currentday.day, 7);
+  }
+
+  static DateTime getFirstDate(List<Event> events) {
+    return getMonday(events[0].start);
   }
 
   void buildschedules() {
@@ -199,5 +205,10 @@ class Timetable {
     } else {
       return null;
     }
+  }
+
+  int getWeekIndex(DateTime now) {
+    /* return the index of the week which now is inside */
+    return 0;
   }
 }

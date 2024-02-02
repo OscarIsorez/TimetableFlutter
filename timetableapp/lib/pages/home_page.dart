@@ -1,12 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/SnackBarPopUp.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
-import 'package:timetableapp/components/App_Theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -20,7 +20,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final PageController _pageController = PageController(initialPage: 0);
+  final String start = "8:00";
+  final String end = "21:00";
 
   static Future<String?> selectUrlFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,12 +33,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // ignore: non_constant_identifier_names
   static String SetUrlFromStorage() {
     selectUrlFromStorage().then((value) => value);
     return selectUrlFromStorage().toString();
   }
 
   Timetable timetable = Timetable(url: SetUrlFromStorage());
+
+  final PageController _pageController = PageController(initialPage: 0);
 
   DateTime appBarTitle = Timetable.getMonday(DateTime.now());
 
@@ -51,6 +55,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isVAlide(String url) {
     return url.contains("https://") || url.contains("http://") ? true : false;
+  }
+
+  @override
+  initState() {
+    super.initState();
+    updateMultipleSchedules();
+
+    // if (kDebugMode) {
+    // print(start.split(":")[0]);
+    // }
+    // if (kDebugMode) {
+    //   print(end.split(":")[0]);
+    // }
+  }
+
+  static int getCurrentWeekIndex(timetable) {
+    return timetable.getWeekIndex(DateTime.now());
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -160,16 +181,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String generateLastUpdateString() {
     if (timetable.lastUpdate != null) {
-      return "${timetable.lastUpdate!.day < 10 ? "0${timetable.lastUpdate!.day}" : timetable.lastUpdate!.day}/${timetable.lastUpdate!.month < 10 ? "0${timetable.lastUpdate!.month}" : timetable.lastUpdate!.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate!.hour}:${timetable.lastUpdate!.minute < 10 ? "0${timetable.lastUpdate!.minute}" : timetable.lastUpdate!.minute}";
+      return "${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate.hour}:${timetable.lastUpdate.minute < 10 ? "0${timetable.lastUpdate.minute}" : timetable.lastUpdate.minute}";
     } else {
       return "";
     }
-  }
-
-  @override
-  initState() {
-    super.initState();
-    updateMultipleSchedules();
   }
 
   void showEventDialog(Event event) {
@@ -217,13 +232,14 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 3),
               const Text(
                 "Description",
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   //underline
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(event.description.toString().replaceAll("\n", " - ")),
+              Text(event.description.toString().replaceAll(RegExp("\n"), " ")),
               const SizedBox(height: 3),
             ],
           ),
@@ -461,7 +477,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 5),
                       Row(
                         children: [
-                          for (var dayWeek in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'])
+                          for (var dayWeek in [
+                            'Lun',
+                            'Mar',
+                            'Mer',
+                            'Jeu',
+                            'Ven'
+                          ])
                             Flexible(
                               flex: 1,
                               child: Container(
@@ -486,15 +508,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                       Expanded(
-                        
                         child: PageView.builder(
                           controller: _pageController,
                           onPageChanged: (int index) {
-                            var newAppBarTitle =
-                                Timetable.getMonday(DateTime.now())
-                                    .add(Duration(days: index * 7));
-                
-                            updateDayWeekDynamic(newAppBarTitle);
+                            DateTime newDate = Timetable.getMonday(
+                                DateTime.now().add(Duration(days: index * 7)));
+                            updateDayWeekDynamic(newDate);
                           },
                           itemCount: schedules.length,
                           itemBuilder: (context, index) {
@@ -520,65 +539,73 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Change URL'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                onChanged: (value) {
-                  newUrl = value;
+        return SingleChildScrollView(
+          child: AlertDialog(
+            title: const Text('Change URL'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    newUrl = value;
+                  },
+                  decoration: InputDecoration(
+                      labelText: 'Enter New URL',
+                      hintText:
+                          "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/6YP8G1Yv.shu",
+                      //  we want the hint text to be black
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      hintMaxLines: 1),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
                 },
-                decoration: const InputDecoration(labelText: 'Enter New URL'),
+                child: const Text('Close'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (newUrl.isNotEmpty && isVAlide(newUrl)) {
+                    setState(() {
+                      timetable.url = newUrl;
+                    });
+                    updateMultipleSchedules();
+                    timetable.saveUrlToPreferences(newUrl);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Center(
+                            child: Text(
+                          "Link up to date !",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )),
+                        duration: const Duration(milliseconds: 500),
+                        backgroundColor: Colors.green[300],
+                        elevation: 10,
+                        // we add a margin to the toast and borderradius
+                        margin: const EdgeInsets.all(10),
+                        behavior: SnackBarBehavior.floating,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        animation: CurvedAnimation(
+                            parent: const AlwaysStoppedAnimation(1),
+                            curve: Curves.easeInOut),
+                      ),
+                    );
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text('Done'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (newUrl.isNotEmpty && isVAlide(newUrl)) {
-                  setState(() {
-                    timetable.url = newUrl;
-                  });
-                  updateMultipleSchedules();
-                  timetable.saveUrlToPreferences(newUrl);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Center(
-                          child: Text(
-                        "Link up to date !",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )),
-                      duration: const Duration(milliseconds: 1000),
-                      backgroundColor: Colors.green[300],
-                      elevation: 10,
-                      // we add a margin to the toast and borderradius
-                      margin: const EdgeInsets.all(10),
-                      behavior: SnackBarBehavior.floating,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      animation: CurvedAnimation(
-                          parent: const AlwaysStoppedAnimation(1),
-                          curve: Curves.easeInOut),
-                    ),
-                  );
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Done'),
-            ),
-          ],
         );
       },
     );

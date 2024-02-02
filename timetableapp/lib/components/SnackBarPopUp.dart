@@ -8,13 +8,12 @@ class SnackBarPopUp {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-            )
-        ),
+            )),
       ),
       elevation: 10,
       margin: const EdgeInsets.all(10),
       backgroundColor: color,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
