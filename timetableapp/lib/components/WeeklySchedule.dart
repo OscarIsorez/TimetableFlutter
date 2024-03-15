@@ -71,14 +71,25 @@ class WeeklySchedule {
   }
 
   static WeeklySchedule fromJson(Map<String, dynamic> json) {
-    
-    return WeeklySchedule(
-      monday: json['monday'],
-      tuesday: json['tuesday'],
-      wednesday: json['wednesday'],
-      thursday: json['thursday'],
-      friday: json['friday'],
-    );
+    try {
+      return WeeklySchedule(
+        monday: (json['monday'] as List).map((e) => Event.fromJson(e)).toList(),
+        tuesday: (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        wednesday: (json['wednesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        thursday: (json['thursday'] as List).map((e) => Event.fromJson(e)).toList(),
+        friday: (json['friday'] as List).map((e) => Event.fromJson(e)).toList(),
+      );
+    } catch (e) {
+      // Handle the exception here
+      print('Error while parsing JSON: $e');
+      return WeeklySchedule(
+        monday: [],
+        tuesday: [],
+        wednesday: [],
+        thursday: [],
+        friday: [],
+      );
+    }
   }
 
   String toJson() {

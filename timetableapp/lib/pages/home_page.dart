@@ -53,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   static const double globalHeight = 15;
 
+  Timetable? timetableBackup;
   bool isVAlide(String url) {
     return url.contains("https://") || url.contains("http://") ? true : false;
   }
@@ -61,6 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     updateMultipleSchedules();
+    timetableBackup = timetable;
 
     // if (kDebugMode) {
     // print(start.split(":")[0]);
@@ -81,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return appBarTitle;
   }
 
-  Future<void> updateMultipleSchedules() async {
+  Future<List<WeeklySchedule>> updateMultipleSchedules() async {
     final storedUrl = await timetable.getStoredUrl();
 
     final urlToUse = storedUrl ?? timetable.url;
@@ -117,32 +119,38 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('Close'),
               ),
-              TextButton(
-                child: const Text('Load backup'),
-                onPressed: () async {
-                  Timetable? timetableBackup = await timetable.loadTimetable();
-                  if (timetableBackup != null) {
-                    setState(() {
-                      schedules = timetableBackup.schedules;
-                    });
-                    SnackBarPopUp.callSnackBar(
-                        "Backup loaded", context, Colors.green[300]);
+              // (timetableBackup != null)
+              //     ? TextButton(
+              //         child: const Text('Load backup'),
+              //         onPressed: () async {
+              //           Timetable? timetableBackup =
+              //               await timetable.loadTimetable();
+              //           if (timetableBackup != null) {
+              //             setState(() {
+              //               schedules = timetableBackup.schedules;
+              //             });
+              //             SnackBarPopUp.callSnackBar(
+              //                 "Backup loaded", context, Colors.green[300]);
 
-                    Navigator.pop(context);
-                  } else {
-                    SnackBarPopUp.callSnackBar(
-                        "No backup found", context, Colors.red[300]);
-                    Navigator.pop(context);
-                  }
+              //             Navigator.pop(context);
+              //           } else {
+              //             SnackBarPopUp.callSnackBar(
+              //                 "No backup found", context, Colors.red[300]);
+              //             Navigator.pop(context);
+              //           }
 
-                  Navigator.pop(context);
-                },
-              ),
+              //           Navigator.pop(context);
+              //         },
+              //       )
+              // : Container(
+              //     // child: Text(timetableBackup.toString()),
+              //     ),
             ],
           );
         },
       );
     }
+    return schedules;
   }
 
   void goToFirstWeek() {
@@ -397,6 +405,24 @@ class _MyHomePageState extends State<MyHomePage> {
         toolbarHeight: 36,
         backgroundColor: Colors.grey[100],
         actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_downward),
+            onPressed: () async {
+              Timetable? timetableBackup = await timetable.loadTimetable();
+              if (timetableBackup != null) {
+                setState(() {
+                  schedules = timetableBackup.schedules;
+                });
+                SnackBarPopUp.callSnackBar(
+                    "Backup from ${timetableBackup.lastUpdate} loaded",
+                    context,
+                    Colors.green[300]);
+              } else {
+                SnackBarPopUp.callSnackBar(
+                    "No backup found", context, Colors.red[300]);
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {

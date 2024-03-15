@@ -1,4 +1,3 @@
-
 class Event {
   String summary;
   String description;
@@ -14,8 +13,7 @@ class Event {
     required this.location,
   });
 
-
-  empty(){
+  empty() {
     return Event(
       summary: "",
       description: "",
@@ -39,11 +37,7 @@ class Event {
   Event.fromJson(Map<String, dynamic> json)
       : summary = json['summary'],
         description = json['description'],
-        start = json['start'].toDateTime()!,
-        end = json['end'].toDateTime()!,
+        start = DateTime.parse(json['start']),
+        end = DateTime.parse(json['end']),
         location = json['location'];
-
 }
-
-
-

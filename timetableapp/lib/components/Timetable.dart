@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -59,35 +58,42 @@ class Timetable {
   Future<List<WeeklySchedule>> generateTimetable() async {
     schedules = [];
     all_events = [];
-
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode != 200) {
-      infosToShare =
-          "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
+    if (!url.contains("http")) {
+      infosToShare = "Please enter a URL";
       return generateEmptySchedules();
     }
 
-    final body = response.body;
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        infosToShare =
+            "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
+        return generateEmptySchedules();
+      }
 
-    final file = await writeICSData(body);
+      final body = response.body;
 
-    final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
+      final file = await writeICSData(body);
 
-    for (var i = 0; i < icsObj.data.length; i++) {
-      Event event = Event(
-          summary: icsObj.data[i]['summary'].replaceAll("G4", ""),
-          description: icsObj.data[i]['description'],
-          location: icsObj.data[i]['location'],
-          start: icsObj.data[i]['dtstart'].toDateTime()!,
-          // .add(const Duration(hours: 1)),
-          end: icsObj.data[i]['dtend'].toDateTime()!);
-      // .add(const Duration(hours: 1)));
+      final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
+      for (var i = 0; i < icsObj.data.length; i++) {
+        Event event = Event(
+            summary: icsObj.data[i]['summary'].replaceAll("G4", ""),
+            description: icsObj.data[i]['description'],
+            location: icsObj.data[i]['location'],
+            start: icsObj.data[i]['dtstart'].toDateTime()!,
+            // .add(const Duration(hours: 1)),
+            end: icsObj.data[i]['dtend'].toDateTime()!);
+        // .add(const Duration(hours: 1)));
 
-      all_events.add(event);
+        all_events.add(event);
+      }
+      buildschedules();
+      initMapOfColors(all_events, AppTheme.listOfColorsForCourses);
+    } catch (e) {
+      infosToShare = "No network connection, please try again later";
+      return generateEmptySchedules();
     }
-    buildschedules();
-    initMapOfColors(all_events, AppTheme.listOfColorsForCourses);
 
     return schedules;
   }
@@ -177,13 +183,19 @@ class Timetable {
   }
 
   static Timetable fromJson(Map<String, dynamic> json) {
-    Timetable timetable = Timetable(url: json["url"]);
-    timetable.lastUpdate = DateTime.parse(json["lastUpdate"]);
-    timetable.schedules = [];
-    for (var i = 0; i < json["schedules"].length; i++) {
-      timetable.schedules.add(WeeklySchedule.fromJson(json["schedules"][i]));
+    try {
+      Timetable timetable = Timetable(url: json["url"]);
+      timetable.lastUpdate = DateTime.parse(json["lastUpdate"]);
+      timetable.schedules = [];
+      for (var i = 0; i < json["schedules"].length; i++) {
+        timetable.schedules.add(WeeklySchedule.fromJson(json["schedules"][i]));
+      }
+      return timetable;
+    } catch (e) {
+      // Handle the exception here
+      print('Error while parsing JSON: $e');
+      return  Timetable(url: "");
     }
-    return timetable;
   }
 
   Future<void> saveTimetable(Timetable timetable) async {
@@ -198,11 +210,18 @@ class Timetable {
   Future<Timetable?> loadTimetable() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final timetableJson = prefs.getString('timetable');
+    try {
+      final timetableJson = prefs.getString('timetable');
+      print('Loaded timetable: $timetableJson');
 
-    if (timetableJson != null) {
-      return Timetable.fromJson(jsonDecode(timetableJson));
-    } else {
+      if (timetableJson != null) {
+        return Timetable.fromJson(jsonDecode(timetableJson));
+      } else {
+        return null;
+      }
+    } catch (e) {
+      // Handle the exception here
+      print('Error loading timetable: $e');
       return null;
     }
   }
