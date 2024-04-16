@@ -224,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               Text(
-                  "${event.start.add(const Duration(hours: 1)).hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
+                  "${event.start.add(const Duration(hours: 2)).hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
               const SizedBox(height: 3),
               const Text(
                 "End",
@@ -235,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               Text("${event.end.add(
-                    const Duration(hours: 1),
+                    const Duration(hours: 2),
                   ).hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
               const SizedBox(height: 3),
               const Text(

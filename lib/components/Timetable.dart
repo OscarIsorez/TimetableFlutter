@@ -12,6 +12,8 @@ import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:timetableapp/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   static Map<String, Color> MyColors = {};
