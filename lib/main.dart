@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/pages/home_page.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 
 void main() {
-  tz.initializeTimeZones();
-
   runApp(const MyApp());
   // SystemChrome.setPreferredOrientations([
   //   DeviceOrientation.portraitUp,
