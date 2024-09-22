@@ -2,12 +2,14 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:timetableapp/components/MySpace.dart';
 import 'package:timetableapp/components/SnackBarPopUp.dart';
 import 'package:timetableapp/components/Timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetableapp/pages/settings-page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -22,6 +24,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final String start = "8:00";
   final String end = "21:00";
+  Map<String, Color> colorsMap = {};
 
   static Future<String?> selectUrlFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
@@ -30,6 +33,14 @@ class _MyHomePageState extends State<MyHomePage> {
       return url;
     } else {
       return null;
+    }
+  }
+
+  Future<void> loadColorsFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (var course in timetable.getUniqueSummaryList()) {
+      final colorIndex = prefs.getInt(course) ?? 0;
+      colorsMap[course] = AppTheme.listOfColorsForCourses[colorIndex]!;
     }
   }
 
@@ -61,15 +72,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
+    loadColorsFromStorage();
     updateMultipleSchedules();
     timetableBackup = timetable;
 
-    // if (kDebugMode) {
-    // print(start.split(":")[0]);
-    // }
-    // if (kDebugMode) {
-    //   print(end.split(":")[0]);
-    // }
+  
   }
 
   static int getCurrentWeekIndex(timetable) {
@@ -119,32 +126,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('Close'),
               ),
-              // (timetableBackup != null)
-              //     ? TextButton(
-              //         child: const Text('Load backup'),
-              //         onPressed: () async {
-              //           Timetable? timetableBackup =
-              //               await timetable.loadTimetable();
-              //           if (timetableBackup != null) {
-              //             setState(() {
-              //               schedules = timetableBackup.schedules;
-              //             });
-              //             SnackBarPopUp.callSnackBar(
-              //                 "Backup loaded", context, Colors.green[300]);
-
-              //             Navigator.pop(context);
-              //           } else {
-              //             SnackBarPopUp.callSnackBar(
-              //                 "No backup found", context, Colors.red[300]);
-              //             Navigator.pop(context);
-              //           }
-
-              //           Navigator.pop(context);
-              //         },
-              //       )
-              // : Container(
-              //     // child: Text(timetableBackup.toString()),
-              //     ),
             ],
           );
         },
@@ -256,7 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildDay(List<Event> day) {
+  Flexible buildDay(List<Event> day) {
     List<String> patternsToRemove = [
       "(006)",
       "(001)",
@@ -327,7 +308,7 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
-                    : Timetable.MyColors[eventAtTime.summary.substring(0, 3)],
+                    : colorsMap[eventAtTime.summary] ?? Colors.blue,
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: SingleChildScrollView(
@@ -413,9 +394,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   schedules = timetableBackup.schedules;
                 });
-                print("Backup from ${timetableBackup.lastUpdate} loaded");
                 SnackBarPopUp.callSnackBar(
-                    "Backup from ${timetableBackup.lastUpdate} loaded",
+                    "Backup from ${format(timetableBackup.lastUpdate)} loaded",
                     context,
                     Colors.green[300]);
               } else {
@@ -439,7 +419,21 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed:
                   // go back to the first page
                   () => goToFirstWeek(),
-              icon: const Icon(Icons.home))
+              icon: const Icon(Icons.home)),
+          IconButton(
+            onPressed: () {
+              // Navigate to settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SettingsPage(
+                          listOfUniqueSummariesEvents:
+                              timetable.getUniqueSummaryList(),
+                        )),
+              );
+            },
+            icon: Icon(Icons.settings),
+          )
         ],
       ),
       body: SingleChildScrollView(
@@ -636,5 +630,13 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
+
+  format(DateTime? date) {
+    if (date != null) {
+      return "${date.day < 10 ? "0${date.day}" : date.day}/${date.month < 10 ? "0${date.month}" : date.month} at ${date.hour < 10 ? "0${date.hour}" : date.hour}:${date.minute < 10 ? "0${date.minute}" : date.minute}";
+    } else {
+      return "";
+    }
   }
 }

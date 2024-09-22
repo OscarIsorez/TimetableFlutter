@@ -12,11 +12,9 @@ import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:timetableapp/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
-  static Map<String, Color> MyColors = {};
+  static Map<String, Color> myColors = {};
   late DateTime lastUpdate;
 
   String url = "";
@@ -32,7 +30,7 @@ class Timetable {
   // ------------------ METHODS ------------------ //
 
   void initMapOfColors(List<Event> events, List<Color?> colors) {
-    MyColors.clear();
+    myColors.clear();
 
     var shuffledColors = List.from(colors)..shuffle();
     var index = 0;
@@ -40,13 +38,13 @@ class Timetable {
       if (index == shuffledColors.length) {
         index = 0;
       }
-      if (MyColors.containsKey(event.summary.substring(0, 3))) {
+      if (myColors.containsKey(event.summary.substring(0, 3))) {
         continue;
       }
       if (event.summary.contains("CC")) {
-        MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
+        myColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
       } else {
-        MyColors.putIfAbsent(
+        myColors.putIfAbsent(
             event.summary.substring(0, 3), () => shuffledColors[index]!);
       }
       index++;
@@ -110,7 +108,7 @@ class Timetable {
     prefs.setString('timetable_url', url);
   }
 
-  List<Event> all_events_sorted() {
+  List<Event> allEventsSorted() {
     List<Event> allEventsS = [];
     allEventsS = all_events;
     allEventsS.sort((a, b) => a.start.compareTo(b.start));
@@ -134,7 +132,7 @@ class Timetable {
   }
 
   void buildschedules() {
-    all_events = all_events_sorted();
+    all_events = allEventsSorted();
 
     DateTime start = getMonday(DateTime.now());
 
@@ -242,5 +240,30 @@ class Timetable {
   int getWeekIndex(DateTime now) {
     /* return the index of the week which now is inside */
     return 0;
+  }
+
+  /// get the list of unique events by comparing the summary attribute
+  List<Event> getUniqueEvents() {
+    List<Event> uniqueEvents = [];
+
+    for (var event in all_events) {
+      if (!uniqueEvents.any((element) => element.summary == event.summary)) {
+        uniqueEvents.add(event);
+      }
+    }
+    return uniqueEvents;
+  }
+
+  List<String> getUniqueSummaryList() {
+    if (all_events.isEmpty) {
+      return [];
+    }
+    List<String> uniqueSummaryList = [];
+    for (var event in all_events) {
+      if (!uniqueSummaryList.contains(event.summary)) {
+        uniqueSummaryList.add(event.summary);
+      }
+    }
+    return uniqueSummaryList;
   }
 }
