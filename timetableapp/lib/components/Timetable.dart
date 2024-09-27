@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
-import 'package:timetableapp/components/weekly-schedule_model.dart';
+import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/components/event_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';

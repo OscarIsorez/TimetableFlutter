@@ -5,7 +5,7 @@ import 'package:timetableapp/components/event_model.dart';
 import 'package:timetableapp/components/my_space.dart';
 import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/timetable.dart';
-import 'package:timetableapp/components/weekly-schedule_model.dart';
+import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
