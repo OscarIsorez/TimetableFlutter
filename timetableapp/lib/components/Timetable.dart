@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
-import 'package:timetableapp/components/SnackBarPopUp.dart';
 import 'package:timetableapp/components/weekly-schedule_model.dart';
 import 'package:timetableapp/components/event_model.dart';
 import 'package:http/http.dart' as http;
@@ -191,7 +190,6 @@ class Timetable {
       }
       return timetable;
     } catch (e) {
-
       return Timetable(url: "");
     }
   }
@@ -210,7 +208,9 @@ class Timetable {
 
     try {
       final timetableJson = prefs.getString('timetable');
-      print('Loaded timetable: $timetableJson');
+      if (kDebugMode) {
+        print('Loaded timetable: $timetableJson');
+      }
 
       if (timetableJson != null) {
         return Timetable.fromJson(jsonDecode(timetableJson));
@@ -219,7 +219,9 @@ class Timetable {
       }
     } catch (e) {
       // Handle the exception here
-      print('Error loading timetable: $e');
+      if (kDebugMode) {
+        print('Error loading timetable: $e');
+      }
       return null;
     }
   }
