@@ -36,7 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late Timetable timetable;
 
-  Timetable? timetableBackup;
+  late Timetable timetableBackup;
+
   bool isVAlide(String url) {
     return url.contains("https://") || url.contains("http://") ? true : false;
   }
@@ -44,16 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
-    updateMultipleSchedules();
+    update();
     timetable = Timetable(url: setUrlFromStorage());
     timetableBackup = timetable;
-
-    // if (kDebugMode) {
-    // print(start.split(":")[0]);
-    // }
-    // if (kDebugMode) {
-    //   print(end.split(":")[0]);
-    // }
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -68,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return prefs.getString('timetable_url');
   }
 
-  Future<List<WeeklySchedule>> updateMultipleSchedules() async {
+  Future<List<WeeklySchedule>> update() async {
     final storedUrl = await getStoredUrl();
 
     final urlToUse = storedUrl ?? timetable.url;
@@ -103,32 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('Close'),
               ),
-              // (timetableBackup != null)
-              //     ? TextButton(
-              //         child: const Text('Load backup'),
-              //         onPressed: () async {
-              //           Timetable? timetableBackup =
-              //               await timetable.loadTimetable();
-              //           if (timetableBackup != null) {
-              //             setState(() {
-              //               schedules = timetableBackup.schedules;
-              //             });
-              //             SnackBarPopUp.callSnackBar(
-              //                 "Backup loaded", context, Colors.green[300]);
-
-              //             Navigator.pop(context);
-              //           } else {
-              //             SnackBarPopUp.callSnackBar(
-              //                 "No backup found", context, Colors.red[300]);
-              //             Navigator.pop(context);
-              //           }
-
-              //           Navigator.pop(context);
-              //         },
-              //       )
-              // : Container(
-              //     // child: Text(timetableBackup.toString()),
-              //     ),
             ],
           );
         },
@@ -388,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.arrow_downward),
             onPressed: () async {
-              Timetable? timetableBackup = await timetable.loadTimetable();
+              timetableBackup.loadTimetable();
               if (timetableBackup != null) {
                 setState(() {
                   schedules = timetableBackup.schedules;
@@ -406,7 +374,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              updateMultipleSchedules();
+              update();
             },
           ),
           IconButton(
@@ -578,7 +546,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     setState(() {
                       timetable.url = newUrl;
                     });
-                    updateMultipleSchedules();
+                    update();
                     timetable.saveUrlToPreferences(newUrl);
 
                     ScaffoldMessenger.of(context).showSnackBar(

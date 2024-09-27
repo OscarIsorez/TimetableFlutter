@@ -160,17 +160,14 @@ class Timetable {
     return "$json]}";
   }
 
-  static Timetable fromJson(Map<String, dynamic> json) {
-    try {
-      Timetable timetable = Timetable(url: json["url"]);
-      timetable.lastUpdate = DateTime.parse(json["lastUpdate"]);
-      timetable.schedules = [];
-      for (var i = 0; i < json["schedules"].length; i++) {
-        timetable.schedules.add(WeeklySchedule.fromJson(json["schedules"][i]));
-      }
-      return timetable;
-    } catch (e) {
-      return Timetable(url: "");
+  void fromJson(Map<String, dynamic> json) {
+    url = json['url'];
+    lastUpdate = DateTime.parse(json['lastUpdate']);
+    schedules = [];
+    for (var i = 0; i < json['schedules'].length; i++) {
+      WeeklySchedule schedule = WeeklySchedule.empty();
+      schedule = WeeklySchedule.fromJson(json['schedules'][i]);
+      schedules.add(schedule);
     }
   }
 
@@ -183,7 +180,7 @@ class Timetable {
     prefs.setString('timetable', timetableJson);
   }
 
-  Future<Timetable?> loadTimetable() async {
+  void loadTimetable() async {
     final prefs = await SharedPreferences.getInstance();
 
     try {
@@ -193,7 +190,8 @@ class Timetable {
       }
 
       if (timetableJson != null) {
-        return Timetable.fromJson(jsonDecode(timetableJson));
+        final Map<String, dynamic> timetableMap = jsonDecode(timetableJson);
+        fromJson(timetableMap);
       } else {
         return null;
       }
@@ -204,10 +202,5 @@ class Timetable {
       }
       return null;
     }
-  }
-
-  int getWeekIndex(DateTime now) {
-    /* return the index of the week which now is inside */
-    return 0;
   }
 }

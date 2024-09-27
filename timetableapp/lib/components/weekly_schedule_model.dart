@@ -14,8 +14,16 @@ class WeeklySchedule {
       required this.thursday,
       required this.friday});
 
+  WeeklySchedule.empty() {
+    monday = [];
+    tuesday = [];
+    wednesday = [];
+    thursday = [];
+    friday = [];
+  }
+
   List<List<Event>> get events {
-    return [monday,tuesday,wednesday,thursday,friday];
+    return [monday, tuesday, wednesday, thursday, friday];
   }
 
   void addEvent(Event event) {
@@ -74,9 +82,12 @@ class WeeklySchedule {
     try {
       return WeeklySchedule(
         monday: (json['monday'] as List).map((e) => Event.fromJson(e)).toList(),
-        tuesday: (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
-        wednesday: (json['wednesday'] as List).map((e) => Event.fromJson(e)).toList(),
-        thursday: (json['thursday'] as List).map((e) => Event.fromJson(e)).toList(),
+        tuesday:
+            (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        wednesday:
+            (json['wednesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        thursday:
+            (json['thursday'] as List).map((e) => Event.fromJson(e)).toList(),
         friday: (json['friday'] as List).map((e) => Event.fromJson(e)).toList(),
       );
     } catch (e) {
@@ -135,6 +146,4 @@ class WeeklySchedule {
     json += "]}";
     return json;
   }
-
-
 }
