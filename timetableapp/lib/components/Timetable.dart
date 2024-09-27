@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetableapp/utils.dart';
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
@@ -105,30 +106,9 @@ class Timetable {
     return schedules;
   }
 
-  Future<String?> getStoredUrl() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('timetable_url');
-  }
-
   Future<void> saveUrlToPreferences(String url) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('timetable_url', url);
-  }
-
-  static DateTime getMonday(DateTime date) {
-    DateTime currentday = date;
-    while (currentday.weekday != 1) {
-      if (currentday.weekday == 7 || currentday.weekday == 6) {
-        currentday = currentday.add(const Duration(days: 1));
-      } else {
-        currentday = currentday.subtract(const Duration(days: 1));
-      }
-    }
-    return DateTime(currentday.year, currentday.month, currentday.day, 7);
-  }
-
-  static DateTime getFirstDate(List<Event> events) {
-    return getMonday(events[0].start);
   }
 
   void buildschedules() {
