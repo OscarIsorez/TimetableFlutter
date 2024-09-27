@@ -4,11 +4,7 @@ import 'package:timetableapp/pages/home_page.dart';
 
 void main() {
   runApp(const MyApp());
-  // SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.portraitUp,
-  // ]).then((_) {
-  //   runApp(const MyApp());
-  // });
+
 }
 
 class MyApp extends StatelessWidget {
