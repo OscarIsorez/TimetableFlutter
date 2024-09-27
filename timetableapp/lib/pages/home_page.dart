@@ -7,6 +7,8 @@ import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/timetable.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetableapp/storage/local_storage_timetable.dart';
+import 'package:timetableapp/utils.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -22,33 +24,17 @@ class _MyHomePageState extends State<MyHomePage> {
   final String start = "8:00";
   final String end = "21:00";
 
-  static Future<String?> selectUrlFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final url = prefs.getString('url') ?? "";
-    if (url.isNotEmpty) {
-      return url;
-    } else {
-      return null;
-    }
-  }
-
-  // ignore: non_constant_identifier_names
-  static String SetUrlFromStorage() {
-    selectUrlFromStorage().then((value) => value);
-    return selectUrlFromStorage().toString();
-  }
-
-  Timetable timetable = Timetable(url: SetUrlFromStorage());
-
   final PageController _pageController = PageController(initialPage: 0);
 
-  DateTime appBarTitle = Timetable.getMonday(DateTime.now());
+  DateTime appBarTitle = getMonday(DateTime.now());
 
   List<WeeklySchedule> schedules = [];
 
   Color? mygrey = Colors.grey[100];
 
   static const double globalHeight = 15;
+
+  late Timetable timetable;
 
   Timetable? timetableBackup;
   bool isVAlide(String url) {
@@ -59,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     updateMultipleSchedules();
+    timetable = Timetable(url: setUrlFromStorage());
     timetableBackup = timetable;
 
     // if (kDebugMode) {
@@ -76,8 +63,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return appBarTitle;
   }
 
+  Future<String?> getStoredUrl() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('timetable_url');
+  }
+
   Future<List<WeeklySchedule>> updateMultipleSchedules() async {
-    final storedUrl = await timetable.getStoredUrl();
+    final storedUrl = await getStoredUrl();
 
     final urlToUse = storedUrl ?? timetable.url;
 
@@ -148,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void goToFirstWeek() {
     _pageController.animateToPage(0,
         duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
-    updateDayWeekDynamic(Timetable.getMonday(DateTime.now()));
+    updateDayWeekDynamic(getMonday(DateTime.now()));
   }
 
   Widget buildTimetable(WeeklySchedule schedule) {
@@ -525,7 +517,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: PageView.builder(
                           controller: _pageController,
                           onPageChanged: (int index) {
-                            DateTime newDate = Timetable.getMonday(
+                            DateTime newDate = getMonday(
                                 DateTime.now().add(Duration(days: index * 7)));
                             updateDayWeekDynamic(newDate);
                           },
