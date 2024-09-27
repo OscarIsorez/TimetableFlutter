@@ -36,7 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late Timetable timetable;
 
-  late Timetable timetableBackup;
+  late Timetable? timetableBackup;
 
   bool isVAlide(String url) {
     return url.contains("https://") || url.contains("http://") ? true : false;
@@ -356,13 +356,13 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.arrow_downward),
             onPressed: () async {
-              timetableBackup.loadTimetable();
-              if (timetableBackup != null) {
+              timetableBackup?.loadTimetable();
+              if (timetableBackup!.all_events.isNotEmpty) {
                 setState(() {
-                  schedules = timetableBackup.schedules;
+                  schedules = timetableBackup!.schedules;
                 });
                 SnackBarPopUp.callSnackBar(
-                    "Backup from ${timetableBackup.lastUpdate} loaded",
+                    "Backup from ${timetableBackup!.lastUpdate} loaded",
                     context,
                     Colors.green[300]);
               } else {

@@ -14,7 +14,7 @@ import 'package:timetableapp/utils.dart';
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   static Map<String, Color> myColors = {};
-  late DateTime lastUpdate;
+  DateTime lastUpdate = DateTime.now();
 
   String url = "";
   List<WeeklySchedule> schedules = [];
@@ -193,7 +193,9 @@ class Timetable {
         final Map<String, dynamic> timetableMap = jsonDecode(timetableJson);
         fromJson(timetableMap);
       } else {
-        return null;
+        if (kDebugMode) {
+          print('No timetable found in shared preferences');
+        }
       }
     } catch (e) {
       // Handle the exception here
