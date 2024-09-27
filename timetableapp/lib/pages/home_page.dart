@@ -1,12 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:timetableapp/components/Event.dart';
-import 'package:timetableapp/components/MySpace.dart';
-import 'package:timetableapp/components/SnackBarPopUp.dart';
-import 'package:timetableapp/components/Timetable.dart';
-import 'package:timetableapp/components/WeeklySchedule.dart';
+import 'package:timetableapp/components/event_model.dart';
+import 'package:timetableapp/components/my_space.dart';
+import 'package:timetableapp/components/snackbarpopup.dart';
+import 'package:timetableapp/components/timetable.dart';
+import 'package:timetableapp/components/weekly-schedule_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -47,8 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<WeeklySchedule> schedules = [];
 
-  final TextEditingController _urlController = TextEditingController();
-
   Color? mygrey = Colors.grey[100];
 
   static const double globalHeight = 15;
@@ -70,10 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // if (kDebugMode) {
     //   print(end.split(":")[0]);
     // }
-  }
-
-  static int getCurrentWeekIndex(timetable) {
-    return timetable.getWeekIndex(DateTime.now());
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -100,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> {
       SnackBarPopUp.callSnackBar(
           "Timetable up to date", context, Colors.green[300]);
     } else {
-      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
         builder: (context) {
@@ -188,11 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String generateLastUpdateString() {
-    if (timetable.lastUpdate != null) {
-      return "${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate.hour}:${timetable.lastUpdate.minute < 10 ? "0${timetable.lastUpdate.minute}" : timetable.lastUpdate.minute}";
-    } else {
-      return "";
-    }
+    return "${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month} at ${timetable.lastUpdate.hour < 10 ? "0${timetable.lastUpdate.hour}" : timetable.lastUpdate.hour}:${timetable.lastUpdate.minute < 10 ? "0${timetable.lastUpdate.minute}" : timetable.lastUpdate.minute}";
   }
 
   void showEventDialog(Event event) {
@@ -327,7 +315,7 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
-                    : Timetable.MyColors[eventAtTime.summary.substring(0, 3)],
+                    : Timetable.myColors[eventAtTime.summary.substring(0, 3)],
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: SingleChildScrollView(
@@ -496,7 +484,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // Deuxième colonne pour les jours et la PageView
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 920,
                   child: Column(
                     children: [

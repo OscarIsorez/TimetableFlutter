@@ -25,11 +25,11 @@ class Event {
 
   String toJson() {
     String json = "{";
-    json += "\"summary\": \"" + summary + "\",";
-    json += "\"description\": \"" + description + "\",";
-    json += "\"start\": \"" + start.toIso8601String() + "\",";
-    json += "\"end\": \"" + end.toIso8601String() + "\",";
-    json += "\"location\": \"" + location + "\"";
+    json += "\"summary\": \"$summary\",";
+    json += "\"description\": \"$description\",";
+    json += "\"start\": \"${start.toIso8601String()}\",";
+    json += "\"end\": \"${end.toIso8601String()}\",";
+    json += "\"location\": \"$location\"";
     json += "}";
     return json;
   }

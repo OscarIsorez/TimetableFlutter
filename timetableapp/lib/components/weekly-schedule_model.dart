@@ -1,4 +1,4 @@
-import 'package:timetableapp/components/Event.dart';
+import 'package:timetableapp/components/event_model.dart';
 
 class WeeklySchedule {
   List<Event> monday = [];
@@ -81,7 +81,6 @@ class WeeklySchedule {
       );
     } catch (e) {
       // Handle the exception here
-      print('Error while parsing JSON: $e');
       return WeeklySchedule(
         monday: [],
         tuesday: [],

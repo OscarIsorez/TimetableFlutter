@@ -1,20 +1,19 @@
 import 'dart:convert';
-import 'dart:ui';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
-import 'package:timetableapp/components/WeeklySchedule.dart';
-import 'package:timetableapp/components/Event.dart';
+import 'package:timetableapp/components/SnackBarPopUp.dart';
+import 'package:timetableapp/components/weekly-schedule_model.dart';
+import 'package:timetableapp/components/event_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
-import 'package:timetableapp/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
-  static Map<String, Color> MyColors = {};
+  static Map<String, Color> myColors = {};
   late DateTime lastUpdate;
 
   String url = "";
@@ -30,7 +29,7 @@ class Timetable {
   // ------------------ METHODS ------------------ //
 
   void initMapOfColors(List<Event> events, List<Color?> colors) {
-    MyColors.clear();
+    myColors.clear();
 
     var shuffledColors = List.from(colors)..shuffle();
     var index = 0;
@@ -38,13 +37,13 @@ class Timetable {
       if (index == shuffledColors.length) {
         index = 0;
       }
-      if (MyColors.containsKey(event.summary.substring(0, 3))) {
+      if (myColors.containsKey(event.summary.substring(0, 3))) {
         continue;
       }
       if (event.summary.contains("CC")) {
-        MyColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
+        myColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
       } else {
-        MyColors.putIfAbsent(
+        myColors.putIfAbsent(
             event.summary.substring(0, 3), () => shuffledColors[index]!);
       }
       index++;
@@ -66,8 +65,17 @@ class Timetable {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) {
-        infosToShare =
-            "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
+        if (response.statusCode == 404) {
+          infosToShare = "Error 404, URL not found";
+        } else if (response.statusCode == 403) {
+          infosToShare = "Error 403, Forbidden access";
+        } else if (response.statusCode == 500) {
+          infosToShare =
+              "Internal server error.\nThat's not your fault, try again later ! ";
+        } else {
+          infosToShare =
+              "Error while retrieving timetable,\nStatus-Code : ${response.statusCode}\nWould you like to access a backup?";
+        }
         return generateEmptySchedules();
       }
 
@@ -108,13 +116,6 @@ class Timetable {
     prefs.setString('timetable_url', url);
   }
 
-  List<Event> all_events_sorted() {
-    List<Event> allEventsS = [];
-    allEventsS = all_events;
-    allEventsS.sort((a, b) => a.start.compareTo(b.start));
-    return allEventsS;
-  }
-
   static DateTime getMonday(DateTime date) {
     DateTime currentday = date;
     while (currentday.weekday != 1) {
@@ -132,8 +133,6 @@ class Timetable {
   }
 
   void buildschedules() {
-    all_events = all_events_sorted();
-
     DateTime start = getMonday(DateTime.now());
 
     for (var i = 0; i < 52; i++) {
@@ -179,7 +178,7 @@ class Timetable {
         json += ",";
       }
     }
-    return json + "]}";
+    return "$json]}";
   }
 
   static Timetable fromJson(Map<String, dynamic> json) {
@@ -192,9 +191,8 @@ class Timetable {
       }
       return timetable;
     } catch (e) {
-      // Handle the exception here
-      print('Error while parsing JSON: $e');
-      return  Timetable(url: "");
+
+      return Timetable(url: "");
     }
   }
 
