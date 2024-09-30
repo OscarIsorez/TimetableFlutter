@@ -1,20 +1,20 @@
 import 'package:timetableapp/components/event_model.dart';
 
-class WeeklySchedule {
+class WeekSchedule {
   List<Event> monday = [];
   List<Event> tuesday = [];
   List<Event> wednesday = [];
   List<Event> thursday = [];
   List<Event> friday = [];
 
-  WeeklySchedule(
+  WeekSchedule(
       {required this.monday,
       required this.tuesday,
       required this.wednesday,
       required this.thursday,
       required this.friday});
 
-  WeeklySchedule.empty() {
+  WeekSchedule.empty() {
     monday = [];
     tuesday = [];
     wednesday = [];
@@ -78,9 +78,9 @@ class WeeklySchedule {
     }
   }
 
-  static WeeklySchedule fromJson(Map<String, dynamic> json) {
+  static WeekSchedule fromJson(Map<String, dynamic> json) {
     try {
-      return WeeklySchedule(
+      return WeekSchedule(
         monday: (json['monday'] as List).map((e) => Event.fromJson(e)).toList(),
         tuesday:
             (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
@@ -92,7 +92,7 @@ class WeeklySchedule {
       );
     } catch (e) {
       // Handle the exception here
-      return WeeklySchedule(
+      return WeekSchedule(
         monday: [],
         tuesday: [],
         wednesday: [],
