@@ -7,4 +7,9 @@ DateTime getMonday(DateTime date) {
   }
 }
 
+DateTime getStartOfWeek(DateTime date) {
+  return getMonday(date);
+}
 
+DateTime get startOfThisWeek => getMonday(DateTime.now());
+DateTime get endOfWeek => startOfThisWeek.add(const Duration(days: 4));
