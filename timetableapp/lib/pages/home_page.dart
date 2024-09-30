@@ -28,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   DateTime appBarTitle = getMonday(DateTime.now());
 
-  List<WeeklySchedule> schedules = [];
+  List<WeekSchedule> schedules = [];
 
   Color? mygrey = Colors.grey[100];
 
@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return prefs.getString('timetable_url');
   }
 
-  Future<List<WeeklySchedule>> update() async {
+  Future<List<WeekSchedule>> update() async {
     final storedUrl = await getStoredUrl();
 
     final urlToUse = storedUrl ?? timetable.url;
@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
     updateDayWeekDynamic(getMonday(DateTime.now()));
   }
 
-  Widget buildTimetable(WeeklySchedule schedule) {
+  Widget buildTimetable(WeekSchedule schedule) {
     return Row(children: [
       for (var day in schedule.events)
         if (day.isEmpty)
