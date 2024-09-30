@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timetableapp/components/App_Theme.dart';
-import 'package:timetableapp/pages/home_page.dart';
-import 'package:timetableapp/pages/settings_page.dart';
 import 'package:timetableapp/pages/timetable_screen.dart';
 import 'package:timetableapp/providers/timetable_provider.dart';
 
