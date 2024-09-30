@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timetableapp/components/event_model.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
+import 'package:timetableapp/constant.dart';
 import 'package:timetableapp/providers/timetable_provider.dart';
 
 class TimetableView extends StatelessWidget {
@@ -16,212 +17,166 @@ class TimetableView extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              scheduleProvider.fetchSchedule();
+              scheduleProvider
+                  .fetchSchedule(); // Fonction pour actualiser l'emploi du temps
             },
           ),
         ],
       ),
       body: scheduleProvider.schedules.isEmpty
-          ? Center(
-              child: Text('Aucun cours trouvé'),
+          ? const Center(
+              child: Text('Actualisez votre emploi du temps'),
             )
-          : _buildTimetable(scheduleProvider),
+          : _buildTimetable(scheduleProvider, context),
     );
   }
 
-  /// Build a Day column with all the events and empty slots
-  ///  it starts from earliest course to latest course of the whole schedule
-  List<Widget> _buildDayView(List<Event> events) {
-    List<Widget> slots = [];
-    return List.generate(
-      10,
-      (index) {
-        DateTime currentTime = DateTime(2021, 1, 1, 8, 0);
-        currentTime = currentTime.add(Duration(minutes: index * 15));
-        Event? currentEvent = events.firstWhere(
-          (event) =>
-              currentTime.isAfter(event.start) &&
-              currentTime.isBefore(event.end),
-          orElse: () => Event(
-              summary: '',
-              start: currentTime,
-              end: currentTime,
-              description: '', location: ''),
-        );
+  /// Construit la vue d'un jour avec tous les événements et les créneaux vides
+  Widget _buildDayView(List<Event> events, int startHour, int endHour) {
+    List<Widget> daySlots = [];
 
-        if (currentEvent.summary.isEmpty) {
-          slots.add(_buildEmptySlot(15));
-        } else {
-          slots.add(_buildEventSlot(currentEvent, 15));
-        }
-        return Expanded(
-          child: Column(
-            children: slots,
+    // Initialisation de l'heure de début pour vérifier les créneaux vides
+    int currentHour = startHour;
+
+    for (Event event in events) {
+      // Ajout des créneaux vides si nécessaire
+      if (event.start.hour > currentHour) {
+        daySlots.add(
+          Container(
+            height: (event.start.hour - currentHour) * 60.0,
+            color: Colors.grey[200],
+            child: Center(child: Text('Créneau vide')),
           ),
         );
-      },
+      }
+
+      // Ajout des cours
+      daySlots.add(
+        Container(
+          height: (event.end.difference(event.start).inMinutes).toDouble(),
+          color: Colors.green,
+          child: Center(
+            child: Text(
+                '${event.summary} (${event.start.hour}:${event.start.minute})'),
+          ),
+        ),
+      );
+
+      // Mise à jour de l'heure courante pour le prochain tour de boucle
+      currentHour = event.end.hour;
+    }
+
+    // Si des créneaux sont vides après le dernier cours jusqu'à la fin de la journée
+    if (currentHour < endHour) {
+      daySlots.add(
+        Container(
+          height: (endHour - currentHour) * 60.0,
+          color: Colors.grey[200],
+          child: Center(child: Text('Créneau vide')),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Column(children: daySlots),
     );
   }
 
-  Widget _buildEmptySlot(int minutes) {
-    int slotCount = (minutes / 15).ceil(); // 15 minutes par slot
-    return Column(
-      children: List.generate(
-        slotCount,
-        (index) => Container(
-          height: 15, // Hauteur du slot de 15 minutes
-          color: Colors
-              .grey[300], // Couleur gris clair pour les périodes sans cours
-        ),
+  Widget _buildTimetable(ScheduleProvider scheduleProvider, context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: Column(
+        children: [
+          _buildColumnHeader(),
+          Expanded(
+            // Ajout d'un Expanded pour gérer la taille de la vue
+            child: Row(
+              children: [
+                _buildTimeColumn(scheduleProvider),
+                Expanded(
+                  // Ajout d'un Expanded pour PageView
+                  child: _buildWeeksPageView(scheduleProvider, context),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEventSlot(Event event, int minutes) {
-    int slotCount = (minutes / 15).ceil();
-    return Column(
-      children: List.generate(
-        slotCount,
-        (index) => Container(
-          height: 15, // Hauteur du slot de 15 minutes
-          color: Colors.green, // Couleur du cours
-          child: Text(
-            index == 0
-                ? event.summary
-                : '', // Afficher le nom du cours uniquement sur le premier slot
-            style: TextStyle(fontSize: 12, color: Colors.white),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimetable(ScheduleProvider scheduleProvider) {
-    return PageView.builder(
-      itemBuilder: (context, index) {
-        return Column(
-          children: [
-            _buildColumnHeader(),
-            _buildTimeColumnAndWeekView(scheduleProvider.schedules[index]),
-          ],
-        );
-      },
-      itemCount: scheduleProvider.schedules.length,
-    );
-  }
-
+  /// Construit l'en-tête de colonnes avec les jours de la semaine
   Widget _buildColumnHeader() {
     return Row(
       children: [
-        Expanded(
-          child: Container(
-            height: 30,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('Lundi'),
-            ),
+        Container(
+          width: Constant.columnWidth,
+          height: 30,
+          color: Colors.grey[300],
+          child: const Center(
+            child: Text('Heure'),
           ),
         ),
-        Expanded(
-          child: Container(
-            height: 30,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('Mardi'),
+        for (String day in Constant.weekDaysShort)
+          Expanded(
+            child: Container(
+              height: 30,
+              color: Colors.grey[300],
+              child: Center(
+                child: Text(day),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Container(
-            height: 30,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('Mercredi'),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            height: 30,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('Jeudi'),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            height: 30,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('Vendredi'),
-            ),
-          ),
-        ),
       ],
     );
   }
 
-  Widget _buildTimeColumnAndWeekView(WeeklySchedule schedule) {
-    return Expanded(
-        child: Row(
-      children: [
-        _buidTimeColumn(),
-        _buildWeekView(schedule),
-      ],
-    ));
-  }
-
-  Widget _buidTimeColumn() {
-    return Column(
-      children: List.generate(
-        10,
-        (index) {
-          return Container(
+  /// Construit la colonne des horaires
+  Widget _buildTimeColumn(ScheduleProvider scheduleProvider) {
+    return SizedBox(
+      width: Constant.columnWidth,
+      child: Column(children: [
+        for (var i = scheduleProvider.earliestCourse.hour;
+            i <= scheduleProvider.latestCourse.hour;
+            i++)
+          Container(
             height: 60,
             color: Colors.grey[300],
             child: Center(
-                child: Text(
-              '${index + 8}h',
-              style: TextStyle(fontSize: 16),
-            )),
-          );
+              child: Text('$i:00'),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  /// PageView pour la navigation entre les semaines
+  Widget _buildWeeksPageView(
+      ScheduleProvider scheduleProvider, BuildContext context) {
+    return Expanded(
+      child: PageView.builder(
+        itemCount: scheduleProvider.schedules.length,
+        itemBuilder: (context, index) {
+          return _buildWeekView(scheduleProvider.schedules[index]);
         },
       ),
     );
   }
 
-  Widget _buildWeekView(WeeklySchedule schedule) {
-    return Expanded(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: _buildDayView(schedule.monday),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: _buildDayView(schedule.tuesday),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: _buildDayView(schedule.wednesday),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: _buildDayView(schedule.thursday),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: _buildDayView(schedule.friday),
-            ),
-          ),
-        ],
-      ),
+  /// Construit la vue d'une semaine avec chaque jour
+  Widget _buildWeekView(WeekSchedule week) {
+    final startHour = 7;
+    final endHour = 20;
+
+    return Row(
+      children: [
+        _buildDayView(week.monday, startHour, endHour),
+        _buildDayView(week.tuesday, startHour, endHour),
+        _buildDayView(week.wednesday, startHour, endHour),
+        _buildDayView(week.thursday, startHour, endHour),
+        _buildDayView(week.friday, startHour, endHour),
+      ],
     );
   }
 }
