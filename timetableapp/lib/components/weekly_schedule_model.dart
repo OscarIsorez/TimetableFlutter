@@ -146,4 +146,31 @@ class WeeklySchedule {
     json += "]}";
     return json;
   }
+
+  List<Event> getAllEvents() {
+    List<Event> allEvents = [];
+    allEvents.addAll(monday);
+    allEvents.addAll(tuesday);
+    allEvents.addAll(wednesday);
+    allEvents.addAll(thursday);
+    allEvents.addAll(friday);
+    return allEvents;
+  }
+
+  List<Event> getDayEvents(int dayIndex) {
+    switch (dayIndex) {
+      case 0:
+        return monday;
+      case 1:
+        return tuesday;
+      case 2:
+        return wednesday;
+      case 3:
+        return thursday;
+      case 4:
+        return friday;
+      default:
+        return [];
+    }
+  }
 }
