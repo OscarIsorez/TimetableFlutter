@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -11,21 +12,23 @@ import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/utils.dart';
 
 class ScheduleProvider with ChangeNotifier {
-  List<WeeklySchedule> _schedules = [];
+  List<WeekSchedule> _schedules = [];
   List<Event> _allEvents = [];
   String _url =
       "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/pn8Z8l38.shu";
   String _infosToShare = "";
   String _backupSchedule = '';
   late DateTime _lastUpdate;
-  late DateTime _latestCourse;
-  late DateTime _earliestCourse;
+  late DateTime _latestCourse = DateTime(1900, 1, 1, 8, 0);
+  late DateTime _earliestCourse = DateTime(2900, 1, 1, 8, 0);
 
-  List<WeeklySchedule> get schedules => _schedules;
+  List<WeekSchedule> get schedules => _schedules;
   String get infosToShare => _infosToShare;
   String get url => _url;
-  DateTime get latestCourse => latestCourse;
-  DateTime get earliestCourse => earliestCourse;
+
+  // The courses with the latest and earliest hours
+  DateTime get latestCourse => _latestCourse;
+  DateTime get earliestCourse => _earliestCourse;
 
   set url(String newUrl) {
     _url = newUrl;
@@ -43,19 +46,22 @@ class ScheduleProvider with ChangeNotifier {
         _allEvents = [];
         for (var eventData in icsObj.data) {
           Event event = Event(
-              summary: eventData['summary'].replaceAll("G4", ""),
+              summary: eventData['summary'],
               description: eventData['description'],
               location: eventData['location'],
               start: eventData['dtstart'].toDateTime()!,
               end: eventData['dtend'].toDateTime()!);
           _allEvents.add(event);
-          _updateLatestAndEarliestCourse(event.start, event.end);
+          _updateLatestAndEarliestCourseHours(event.start, event.end);
+        }
+        if (kDebugMode) {
+          print("earliest course: $_earliestCourse");
+          print("latest course: $_latestCourse");
         }
 
         buildSchedules();
         initMapOfColors(_allEvents, AppTheme.listOfColorsForCourses);
 
-        // Sauvegarder la dernière version récupérée
         _backupSchedule = body;
         await saveBackupToPreferences(_backupSchedule);
         notifyListeners();
@@ -84,7 +90,7 @@ class ScheduleProvider with ChangeNotifier {
       DateTime weekStart = start;
       DateTime weekEnd = weekStart.add(const Duration(days: 6));
 
-      WeeklySchedule week = WeeklySchedule(
+      WeekSchedule week = WeekSchedule(
         monday: [],
         tuesday: [],
         wednesday: [],
@@ -129,19 +135,23 @@ class ScheduleProvider with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? backup = prefs.getString('backup_schedule');
     if (backup != null) {
-      final icsObj = ICalendar.fromString(backup);
-      _allEvents = [];
-      for (var eventData in icsObj.data) {
-        Event event = Event(
-            summary: eventData['summary'],
-            description: eventData['description'],
-            location: eventData['location'],
-            start: eventData['dtstart'].toDateTime()!,
-            end: eventData['dtend'].toDateTime()!);
-        _allEvents.add(event);
+      try {
+        final icsObj = ICalendar.fromString(backup);
+        _allEvents = [];
+        for (var eventData in icsObj.data) {
+          Event event = Event(
+              summary: eventData['summary'],
+              description: eventData['description'],
+              location: eventData['location'],
+              start: eventData['dtstart'].toDateTime()!,
+              end: eventData['dtend'].toDateTime()!);
+          _allEvents.add(event);
+        }
+        buildSchedules();
+        notifyListeners();
+      } catch (e) {
+        _infosToShare = "Error loading backup schedule.";
       }
-      buildSchedules();
-      notifyListeners();
     }
   }
 
@@ -172,12 +182,13 @@ class ScheduleProvider with ChangeNotifier {
     });
   }
 
-  void _updateLatestAndEarliestCourse(DateTime start, DateTime end) {
-    if (start.isAfter(latestCourse)) {
-      _latestCourse = start;
+  void _updateLatestAndEarliestCourseHours(DateTime start, DateTime end) {
+    // we want to get the earliest hour and the lastest hour of the whole schedule
+    if (start.hour < _earliestCourse.hour) {
+      _earliestCourse = start;
     }
-    if (end.isBefore(earliestCourse)) {
-      _earliestCourse = end;
+    if (end.hour > _latestCourse.hour) {
+      _latestCourse = end;
     }
   }
 }
