@@ -17,7 +17,7 @@ class Timetable {
   DateTime lastUpdate = DateTime.now();
 
   String url = "";
-  List<WeeklySchedule> schedules = [];
+  List<WeekSchedule> schedules = [];
   // ignore: non_constant_identifier_names
   var all_events = <Event>[];
   var infosToShare = "";
@@ -50,11 +50,11 @@ class Timetable {
     }
   }
 
-  Future<List<WeeklySchedule>> generateEmptySchedules() async {
+  Future<List<WeekSchedule>> generateEmptySchedules() async {
     return [];
   }
 
-  Future<List<WeeklySchedule>> generateTimetable() async {
+  Future<List<WeekSchedule>> generateTimetable() async {
     schedules = [];
     all_events = [];
     if (!url.contains("http")) {
@@ -118,7 +118,7 @@ class Timetable {
       DateTime weektofillStart = start;
       DateTime weektofillEnd = weektofillStart.add(const Duration(days: 6));
 
-      WeeklySchedule weektofill = WeeklySchedule(
+      WeekSchedule weektofill = WeekSchedule(
         monday: [],
         tuesday: [],
         wednesday: [],
@@ -165,8 +165,8 @@ class Timetable {
     lastUpdate = DateTime.parse(json['lastUpdate']);
     schedules = [];
     for (var i = 0; i < json['schedules'].length; i++) {
-      WeeklySchedule schedule = WeeklySchedule.empty();
-      schedule = WeeklySchedule.fromJson(json['schedules'][i]);
+      WeekSchedule schedule = WeekSchedule.empty();
+      schedule = WeekSchedule.fromJson(json['schedules'][i]);
       schedules.add(schedule);
     }
   }
