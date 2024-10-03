@@ -158,17 +158,17 @@ class TimetableView extends StatelessWidget {
       child: PageView.builder(
         itemCount: scheduleProvider.schedules.length,
         itemBuilder: (context, index) {
-          return _buildWeekView(scheduleProvider.schedules[index]);
+          return _buildWeekView(
+              scheduleProvider.schedules[index],
+              scheduleProvider.earliestCourse.hour,
+              scheduleProvider.latestCourse.hour);
         },
       ),
     );
   }
 
   /// Construit la vue d'une semaine avec chaque jour
-  Widget _buildWeekView(WeekSchedule week) {
-    final startHour = 7;
-    final endHour = 20;
-
+  Widget _buildWeekView(WeekSchedule week, int startHour, int endHour) {
     return Row(
       children: [
         _buildDayView(week.monday, startHour, endHour),
