@@ -21,6 +21,7 @@ class ScheduleProvider with ChangeNotifier {
   late DateTime _lastUpdate;
   late DateTime _latestCourse = DateTime(1900, 1, 1, 8, 0);
   late DateTime _earliestCourse = DateTime(2900, 1, 1, 8, 0);
+  Map<String, Color> myColors = {};
 
   List<WeekSchedule> get schedules => _schedules;
   String get infosToShare => _infosToShare;
@@ -109,21 +110,24 @@ class ScheduleProvider with ChangeNotifier {
   }
 
   void initMapOfColors(List<Event> events, List<Color?> colors) {
-    Map<String, Color> myColors = {};
     var shuffledColors = List.from(colors)..shuffle();
     var index = 0;
 
     for (var event in events) {
       if (index == shuffledColors.length) index = 0;
-      if (!myColors.containsKey(event.summary.substring(0, 3))) {
+      if (!myColors.containsKey(event.summary)) {
         myColors.putIfAbsent(
-            event.summary.substring(0, 3),
+            event.summary,
             () => event.summary.contains("CC")
                 ? Colors.red
                 : shuffledColors[index]!);
         index++;
       }
     }
+  }
+
+  Color getCourseColor(String courseName) {
+    return myColors[courseName] ?? Colors.grey;
   }
 
   Future<void> saveBackupToPreferences(String backup) async {
