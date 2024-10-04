@@ -83,26 +83,20 @@ class TimetableView extends StatelessWidget {
   }
 
   Widget _buildTimetable(ScheduleProvider scheduleProvider, context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      child: Column(
-        children: [
-          _buildColumnHeader(),
-          Expanded(
-            // Ajout d'un Expanded pour gérer la taille de la vue
-            child: Row(
-              children: [
-                _buildTimeColumn(scheduleProvider),
-                Expanded(
-                  // Ajout d'un Expanded pour PageView
-                  child: _buildWeeksPageView(scheduleProvider, context),
-                ),
-              ],
-            ),
+    return Column(
+      children: [
+        _buildColumnHeader(),
+        Expanded(
+          child: Row(
+            children: [
+              _buildTimeColumn(scheduleProvider),
+              Expanded(
+                child: _buildWeeksPageView(scheduleProvider, context),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -136,6 +130,7 @@ class TimetableView extends StatelessWidget {
   Widget _buildTimeColumn(ScheduleProvider scheduleProvider) {
     return SizedBox(
       width: Constant.columnWidth,
+      height: 800,
       child: Column(children: [
         for (var i = scheduleProvider.earliestCourse.hour;
             i <= scheduleProvider.latestCourse.hour;
