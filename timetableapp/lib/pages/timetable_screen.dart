@@ -4,6 +4,7 @@ import 'package:timetableapp/components/event_model.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/constant.dart';
 import 'package:timetableapp/providers/timetable_provider.dart';
+import 'package:timetableapp/utils.dart';
 
 class TimetableView extends StatelessWidget {
   @override
@@ -12,10 +13,10 @@ class TimetableView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Emploi du temps'),
+        title: const Text('Emploi du temps'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
               scheduleProvider
                   .fetchSchedule(); // Fonction pour actualiser l'emploi du temps
@@ -31,69 +32,26 @@ class TimetableView extends StatelessWidget {
     );
   }
 
-  /// Construit la vue d'un jour avec tous les événements et les créneaux vides
-  Widget _buildDayView(List<Event> events, int startHour, int endHour) {
-    List<Widget> daySlots = [];
-
-    // Initialisation de l'heure de début pour vérifier les créneaux vides
-    int currentHour = startHour;
-
-    for (Event event in events) {
-      // Ajout des créneaux vides si nécessaire
-      if (event.start.hour > currentHour) {
-        daySlots.add(
-          Container(
-            height: (event.start.hour - currentHour) * 60.0,
-            color: Colors.grey[200],
-            child: Center(child: Text('Créneau vide')),
-          ),
-        );
-      }
-
-      // Ajout des cours
-      daySlots.add(
-        Container(
-          height: (event.end.difference(event.start).inMinutes).toDouble(),
-          color: Colors.green,
-          child: Center(
-            child: Text(
-                '${event.summary} (${event.start.hour}:${event.start.minute})'),
-          ),
-        ),
-      );
-
-      // Mise à jour de l'heure courante pour le prochain tour de boucle
-      currentHour = event.end.hour;
-    }
-
-    // Si des créneaux sont vides après le dernier cours jusqu'à la fin de la journée
-    if (currentHour < endHour) {
-      daySlots.add(
-        Container(
-          height: (endHour - currentHour) * 60.0,
-          color: Colors.grey[200],
-          child: Center(child: Text('Créneau vide')),
-        ),
-      );
-    }
-
-    return Expanded(
-      child: Column(children: daySlots),
-    );
-  }
-
   Widget _buildTimetable(ScheduleProvider scheduleProvider, context) {
     return Column(
       children: [
         _buildColumnHeader(),
         Expanded(
-          child: Row(
-            children: [
-              _buildTimeColumn(scheduleProvider),
-              Expanded(
-                child: _buildWeeksPageView(scheduleProvider, context),
-              ),
-            ],
+          // Ajout du SingleChildScrollView pour toute la Row (heures + cours)
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: 600, // Hauteur minimale à ajuster si nécessaire
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTimeColumn(scheduleProvider), // Colonne des heures
+                Expanded(
+                  child: _buildWeeksPageView(
+                      scheduleProvider, context), // Cours de la semaine
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -130,48 +88,104 @@ class TimetableView extends StatelessWidget {
   Widget _buildTimeColumn(ScheduleProvider scheduleProvider) {
     return SizedBox(
       width: Constant.columnWidth,
-      height: 800,
-      child: Column(children: [
-        for (var i = scheduleProvider.earliestCourse.hour;
-            i <= scheduleProvider.latestCourse.hour;
-            i++)
-          Container(
-            height: 60,
-            color: Colors.grey[300],
-            child: Center(
-              child: Text('$i:00'),
+      child: Column(
+        children: [
+          for (var i = scheduleProvider.earliestCourse.hour;
+              i <= scheduleProvider.latestCourse.hour;
+              i++)
+            Container(
+              height: 60,
+              color: Colors.grey[300],
+              child: Center(
+                child: Text('$i:00'),
+              ),
             ),
-          ),
-      ]),
+        ],
+      ),
     );
   }
 
   /// PageView pour la navigation entre les semaines
   Widget _buildWeeksPageView(
       ScheduleProvider scheduleProvider, BuildContext context) {
-    return Expanded(
-      child: PageView.builder(
-        itemCount: scheduleProvider.schedules.length,
-        itemBuilder: (context, index) {
-          return _buildWeekView(
-              scheduleProvider.schedules[index],
-              scheduleProvider.earliestCourse.hour,
-              scheduleProvider.latestCourse.hour);
-        },
-      ),
+    return PageView.builder(
+      itemCount: scheduleProvider.schedules.length,
+      itemBuilder: (context, index) {
+        return _buildWeekView(
+            scheduleProvider.schedules[index],
+            scheduleProvider.earliestCourse.hour,
+            scheduleProvider.latestCourse.hour,
+            scheduleProvider);
+      },
     );
   }
 
   /// Construit la vue d'une semaine avec chaque jour
-  Widget _buildWeekView(WeekSchedule week, int startHour, int endHour) {
+  Widget _buildWeekView(WeekSchedule week, int startHour, int endHour,
+      ScheduleProvider provider) {
     return Row(
       children: [
-        _buildDayView(week.monday, startHour, endHour),
-        _buildDayView(week.tuesday, startHour, endHour),
-        _buildDayView(week.wednesday, startHour, endHour),
-        _buildDayView(week.thursday, startHour, endHour),
-        _buildDayView(week.friday, startHour, endHour),
+        _buildDayView(week.monday, startHour, endHour, provider),
+        _buildDayView(week.tuesday, startHour, endHour, provider),
+        _buildDayView(week.wednesday, startHour, endHour, provider),
+        _buildDayView(week.thursday, startHour, endHour, provider),
+        _buildDayView(week.friday, startHour, endHour, provider),
       ],
+    );
+  }
+
+  Widget _buildDayView(List<Event> events, int startHour, int endHour,
+      ScheduleProvider provider) {
+    List<Widget> daySlots = [];
+
+    int currentHour = startHour;
+
+    for (Event event in events) {
+      if (event.start.hour > currentHour) {
+        daySlots.add(
+          SizedBox(
+            height: ((event.start.hour - currentHour) * 60.0).toDouble(),
+            child: const Center(child: Text("C")),
+          ),
+        );
+      }
+
+      daySlots.add(
+        Container(
+          height: ((event.end.hour - event.start.hour) * 60 +
+                  (event.end.minute - event.start.minute))
+              .toDouble(),
+          // color: provider.getCourseColor(event.summary),
+          decoration: BoxDecoration(
+            color: provider.getCourseColor(event.summary),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Container(
+            padding: const EdgeInsets.only(left: 4),
+            child: Center(
+              child: Text(
+                '${event.summary} (${formatTime(event.start)} - ${formatTime(event.end)})',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      currentHour = event.end.hour;
+    }
+
+    if (currentHour < endHour) {
+      daySlots.add(
+        SizedBox(
+          height: (endHour - currentHour) * 60.0,
+          child: const Center(child: Text("C")),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Column(children: daySlots),
     );
   }
 }
