@@ -112,6 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildTimetable(WeekSchedule schedule) {
+    
     return Row(children: [
       for (var day in schedule.events)
         if (day.isEmpty)
