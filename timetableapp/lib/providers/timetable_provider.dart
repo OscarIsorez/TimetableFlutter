@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -8,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/event_model.dart';
+import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/utils.dart';
 
@@ -15,7 +18,8 @@ class ScheduleProvider with ChangeNotifier {
   List<WeekSchedule> _schedules = [];
   List<Event> _allEvents = [];
   String _url =
-      "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/pn8Z8l38.shu";
+      "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/MYzN24YZ.shu";
+  // "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/pn8Z8l38.shu";
   String _infosToShare = "";
   String _backupSchedule = '';
   late DateTime _lastUpdate;
@@ -36,7 +40,7 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchSchedule() async {
+  Future<void> fetchSchedule(BuildContext context) async {
     try {
       final response = await http.get(Uri.parse(_url));
       if (response.statusCode == 200) {
@@ -66,12 +70,15 @@ class ScheduleProvider with ChangeNotifier {
         _backupSchedule = body;
         await saveBackupToPreferences(_backupSchedule);
         notifyListeners();
+        SnackBarPopUp.callSnackBar("Timetable updated", context, Colors.green);
       } else {
         _infosToShare = _handleHttpError(response.statusCode);
+        SnackBarPopUp.callSnackBar(_infosToShare, context, Colors.red);
         loadBackup();
       }
     } catch (e) {
       _infosToShare = "No network connection, please try again later.";
+      SnackBarPopUp.callSnackBar(_infosToShare, context, Colors.red);
       loadBackup();
     }
   }
