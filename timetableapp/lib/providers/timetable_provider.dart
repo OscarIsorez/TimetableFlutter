@@ -9,14 +9,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:timetableapp/components/App_Theme.dart';
+import 'package:timetableapp/components/enum_provider_state.dart';
 import 'package:timetableapp/components/event_model.dart';
-import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/utils.dart';
 
 class ScheduleProvider with ChangeNotifier {
   List<WeekSchedule> _schedules = [];
   List<Event> _allEvents = [];
+  EnumProviderState state = EnumProviderState.loading;
   String _url =
       "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/MYzN24YZ.shu";
   // "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/pn8Z8l38.shu";
@@ -40,7 +41,14 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchSchedule(BuildContext context) async {
+  Future<void> fetchSchedule() async {
+    if (_url.isEmpty) {
+      state = EnumProviderState.error;
+      return;
+    }
+    if (kDebugMode) {
+      print("fetching schedule from $_url");
+    }
     try {
       final response = await http.get(Uri.parse(_url));
       if (response.statusCode == 200) {
@@ -70,15 +78,14 @@ class ScheduleProvider with ChangeNotifier {
         _backupSchedule = body;
         await saveBackupToPreferences(_backupSchedule);
         notifyListeners();
-        SnackBarPopUp.callSnackBar("Timetable updated", context, Colors.green);
+        state = EnumProviderState.loaded;
       } else {
-        _infosToShare = _handleHttpError(response.statusCode);
-        SnackBarPopUp.callSnackBar(_infosToShare, context, Colors.red);
+        state = _handleHttpError(response.statusCode);
+
         loadBackup();
       }
     } catch (e) {
-      _infosToShare = "No network connection, please try again later.";
-      SnackBarPopUp.callSnackBar(_infosToShare, context, Colors.red);
+      state = EnumProviderState.errorNetwork;
       loadBackup();
     }
   }
@@ -161,21 +168,21 @@ class ScheduleProvider with ChangeNotifier {
         buildSchedules();
         notifyListeners();
       } catch (e) {
-        _infosToShare = "Error loading backup schedule.";
+        state = EnumProviderState.errorBackup;
       }
     }
   }
 
-  String _handleHttpError(int statusCode) {
+  EnumProviderState _handleHttpError(int statusCode) {
     switch (statusCode) {
       case 404:
-        return "Error 404, URL not found.";
+        return EnumProviderState.error404;
       case 403:
-        return "Error 403, Forbidden access.";
+        return EnumProviderState.error403;
       case 500:
-        return "Internal server error.";
+        return EnumProviderState.error500;
       default:
-        return "Error retrieving timetable, Status-Code: $statusCode";
+        return EnumProviderState.error;
     }
   }
 
