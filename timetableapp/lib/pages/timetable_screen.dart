@@ -18,13 +18,12 @@ class TimetableView extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              scheduleProvider
-                  .fetchSchedule(); // Fonction pour actualiser l'emploi du temps
+              scheduleProvider.fetchSchedule(context);
             },
           ),
         ],
       ),
-      body: scheduleProvider.schedules.isEmpty
+      body: scheduleProvider.schedules.isEmpty  
           ? const Center(
               child: Text('Actualisez votre emploi du temps'),
             )
