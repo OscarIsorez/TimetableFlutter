@@ -1,12 +1,39 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timetableapp/components/event_model.dart';
+import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/constant.dart';
 import 'package:timetableapp/providers/timetable_provider.dart';
 import 'package:timetableapp/utils.dart';
 
-class TimetableView extends StatelessWidget {
+class TimetableView extends StatefulWidget {
+  const TimetableView({super.key});
+
+  @override
+  State<TimetableView> createState() => _TimetableViewState();
+}
+
+class _TimetableViewState extends State<TimetableView> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchSchedule();
+  }
+
+  Future<void> _fetchSchedule() async {
+    final scheduleProvider =
+        Provider.of<ScheduleProvider>(context, listen: false);
+    await scheduleProvider.fetchSchedule();
+    SnackBarPopUp.callSnackBar(
+      getStringFromState(scheduleProvider.state),
+      context,
+      getColorFromState(scheduleProvider.state),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleProvider = Provider.of<ScheduleProvider>(context);
@@ -17,13 +44,18 @@ class TimetableView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              scheduleProvider.fetchSchedule(context);
+            onPressed: () async {
+              await scheduleProvider.fetchSchedule();
+              SnackBarPopUp.callSnackBar(
+                getStringFromState(scheduleProvider.state),
+                context,
+                getColorFromState(scheduleProvider.state),
+              );
             },
           ),
         ],
       ),
-      body: scheduleProvider.schedules.isEmpty  
+      body: scheduleProvider.schedules.isEmpty
           ? const Center(
               child: Text('Actualisez votre emploi du temps'),
             )
