@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timetableapp/components/event_model.dart';
@@ -68,21 +66,14 @@ class _TimetableViewState extends State<TimetableView> {
       children: [
         _buildColumnHeader(),
         Expanded(
-          // Ajout du SingleChildScrollView pour toute la Row (heures + cours)
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: 600, // Hauteur minimale à ajuster si nécessaire
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTimeColumn(scheduleProvider), // Colonne des heures
-                Expanded(
-                  child: _buildWeeksPageView(
-                      scheduleProvider, context), // Cours de la semaine
-                ),
-              ],
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTimeColumn(scheduleProvider),
+              Expanded(
+                child: _buildWeeksPageView(scheduleProvider, context),
+              ),
+            ],
           ),
         ),
       ],
@@ -119,19 +110,21 @@ class _TimetableViewState extends State<TimetableView> {
   Widget _buildTimeColumn(ScheduleProvider scheduleProvider) {
     return SizedBox(
       width: Constant.columnWidth,
-      child: Column(
-        children: [
-          for (var i = scheduleProvider.earliestCourse.hour;
-              i <= scheduleProvider.latestCourse.hour;
-              i++)
-            Container(
-              height: 60,
-              color: Colors.grey[300],
-              child: Center(
-                child: Text('$i:00'),
+      child: SingleChildScrollView( // Ajout d'un défilement vertical ici
+        child: Column(
+          children: [
+            for (var i = scheduleProvider.earliestCourse.hour;
+                i <= scheduleProvider.latestCourse.hour;
+                i++)
+              Container(
+                height: 60,
+                color: Colors.grey[300],
+                child: Center(
+                  child: Text('$i:00'),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -154,14 +147,17 @@ class _TimetableViewState extends State<TimetableView> {
   /// Construit la vue d'une semaine avec chaque jour
   Widget _buildWeekView(WeekSchedule week, int startHour, int endHour,
       ScheduleProvider provider) {
-    return Row(
-      children: [
-        _buildDayView(week.monday, startHour, endHour, provider),
-        _buildDayView(week.tuesday, startHour, endHour, provider),
-        _buildDayView(week.wednesday, startHour, endHour, provider),
-        _buildDayView(week.thursday, startHour, endHour, provider),
-        _buildDayView(week.friday, startHour, endHour, provider),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,  // Ajout d'un scroll vertical pour la semaine
+      child: Row(
+        children: [
+          _buildDayView(week.monday, startHour, endHour, provider),
+          _buildDayView(week.tuesday, startHour, endHour, provider),
+          _buildDayView(week.wednesday, startHour, endHour, provider),
+          _buildDayView(week.thursday, startHour, endHour, provider),
+          _buildDayView(week.friday, startHour, endHour, provider),
+        ],
+      ),
     );
   }
 
@@ -186,7 +182,6 @@ class _TimetableViewState extends State<TimetableView> {
           height: ((event.end.hour - event.start.hour) * 60 +
                   (event.end.minute - event.start.minute))
               .toDouble(),
-          // color: provider.getCourseColor(event.summary),
           decoration: BoxDecoration(
             color: provider.getCourseColor(event.summary),
             borderRadius: BorderRadius.circular(7),
@@ -216,7 +211,10 @@ class _TimetableViewState extends State<TimetableView> {
     }
 
     return Expanded(
-      child: Column(children: daySlots),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: daySlots,
+      ),
     );
   }
 }
