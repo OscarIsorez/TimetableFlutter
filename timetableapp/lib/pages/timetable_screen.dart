@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:timetableapp/components/event_model.dart';
 import 'package:timetableapp/components/snackbarpopup.dart';
 import 'package:timetableapp/components/weekly_schedule_model.dart';
-import 'package:timetableapp/constant.dart';
+import 'package:timetableapp/constants.dart';
 import 'package:timetableapp/providers/timetable_provider.dart';
 import 'package:timetableapp/utils.dart';
 
@@ -15,16 +15,25 @@ class TimetableView extends StatefulWidget {
 }
 
 class _TimetableViewState extends State<TimetableView> {
+  final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
     _fetchSchedule();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchSchedule() async {
     final scheduleProvider =
         Provider.of<ScheduleProvider>(context, listen: false);
+    if (!mounted) return;
     await scheduleProvider.fetchSchedule();
+    if (!mounted) return;
     SnackBarPopUp.callSnackBar(
       getStringFromState(scheduleProvider.state),
       context,
@@ -43,7 +52,8 @@ class _TimetableViewState extends State<TimetableView> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () async {
-              await scheduleProvider.fetchSchedule();
+              if (!mounted) return;
+              scheduleProvider.fetchSchedule();
               SnackBarPopUp.callSnackBar(
                 getStringFromState(scheduleProvider.state),
                 context,
@@ -53,11 +63,21 @@ class _TimetableViewState extends State<TimetableView> {
           ),
         ],
       ),
-      body: scheduleProvider.schedules.isEmpty
-          ? const Center(
-              child: Text('Actualisez votre emploi du temps'),
-            )
-          : _buildTimetable(scheduleProvider, context),
+      body: Builder(
+        builder: (context) {
+          try {
+            return scheduleProvider.schedules.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : _buildTimetable(scheduleProvider, context);
+          } catch (e) {
+            return Center(
+              child: Text('An error occurred: $e'),
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -70,11 +90,10 @@ class _TimetableViewState extends State<TimetableView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTimeColumn(scheduleProvider),
-              Expanded(
-                child: _buildWeeksPageView(scheduleProvider, context),
-              ),
+              _buildWeeksPageView(scheduleProvider, context),
             ],
           ),
+          // ),
         ),
       ],
     );
@@ -85,14 +104,14 @@ class _TimetableViewState extends State<TimetableView> {
     return Row(
       children: [
         Container(
-          width: Constant.columnWidth,
+          width: Constants.columnWidth,
           height: 30,
           color: Colors.grey[300],
           child: const Center(
             child: Text('Heure'),
           ),
         ),
-        for (String day in Constant.weekDaysShort)
+        for (String day in Constants.weekDaysShort)
           Expanded(
             child: Container(
               height: 30,
@@ -106,58 +125,63 @@ class _TimetableViewState extends State<TimetableView> {
     );
   }
 
-  /// Construit la colonne des horaires
   Widget _buildTimeColumn(ScheduleProvider scheduleProvider) {
-    return SizedBox(
-      width: Constant.columnWidth,
-      child: SingleChildScrollView( // Ajout d'un défilement vertical ici
-        child: Column(
-          children: [
-            for (var i = scheduleProvider.earliestCourse.hour;
-                i <= scheduleProvider.latestCourse.hour;
-                i++)
-              Container(
-                height: 60,
-                color: Colors.grey[300],
-                child: Center(
-                  child: Text('$i:00'),
-                ),
-              ),
-          ],
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = scheduleProvider.earliestCourse.hour;
+            i <= scheduleProvider.latestCourse.hour;
+            i++)
+          SizedBox(
+            height: Constants.hourHeight,
+            width: Constants.columnWidth,
+            // color: Colors.grey[300],
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Text('$i:00 -'),
+            ),
+          ),
+      ],
     );
   }
 
   /// PageView pour la navigation entre les semaines
   Widget _buildWeeksPageView(
       ScheduleProvider scheduleProvider, BuildContext context) {
-    return PageView.builder(
-      itemCount: scheduleProvider.schedules.length,
-      itemBuilder: (context, index) {
-        return _buildWeekView(
-            scheduleProvider.schedules[index],
-            scheduleProvider.earliestCourse.hour,
-            scheduleProvider.latestCourse.hour,
-            scheduleProvider);
-      },
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+        ),
+        child: PageView.builder(
+          controller: PageController(viewportFraction: 1),
+          itemCount: scheduleProvider.schedules.length,
+          itemBuilder: (context, index) {
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: _buildWeekView(
+                  scheduleProvider.schedules[index],
+                  scheduleProvider.earliestCourse.hour,
+                  scheduleProvider.latestCourse.hour,
+                  scheduleProvider),
+            );
+          },
+        ),
+      ),
     );
   }
 
   /// Construit la vue d'une semaine avec chaque jour
   Widget _buildWeekView(WeekSchedule week, int startHour, int endHour,
       ScheduleProvider provider) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,  // Ajout d'un scroll vertical pour la semaine
-      child: Row(
-        children: [
-          _buildDayView(week.monday, startHour, endHour, provider),
-          _buildDayView(week.tuesday, startHour, endHour, provider),
-          _buildDayView(week.wednesday, startHour, endHour, provider),
-          _buildDayView(week.thursday, startHour, endHour, provider),
-          _buildDayView(week.friday, startHour, endHour, provider),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildDayView(week.monday, startHour, endHour, provider),
+        _buildDayView(week.tuesday, startHour, endHour, provider),
+        _buildDayView(week.wednesday, startHour, endHour, provider),
+        _buildDayView(week.thursday, startHour, endHour, provider),
+        _buildDayView(week.friday, startHour, endHour, provider),
+      ],
     );
   }
 
@@ -171,8 +195,8 @@ class _TimetableViewState extends State<TimetableView> {
       if (event.start.hour > currentHour) {
         daySlots.add(
           SizedBox(
-            height: ((event.start.hour - currentHour) * 60.0).toDouble(),
-            child: const Center(child: Text("C")),
+            height: ((event.start.hour - currentHour) * 45.0).toDouble(),
+            child: const Center(child: Text("")),
           ),
         );
       }
@@ -181,18 +205,16 @@ class _TimetableViewState extends State<TimetableView> {
         Container(
           height: ((event.end.hour - event.start.hour) * 60 +
                   (event.end.minute - event.start.minute))
-              .toDouble(),
+              .toDouble(), // Calcul précis de la durée en pixels
           decoration: BoxDecoration(
             color: provider.getCourseColor(event.summary),
-            borderRadius: BorderRadius.circular(7),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Container(
-            padding: const EdgeInsets.only(left: 4),
-            child: Center(
-              child: Text(
-                '${event.summary} (${formatTime(event.start)} - ${formatTime(event.end)})',
-                style: const TextStyle(fontSize: 12),
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              '${event.summary} (${formatTime(event.start)} - ${formatTime(event.end)})',
+              style: const TextStyle(fontSize: 12),
             ),
           ),
         ),
