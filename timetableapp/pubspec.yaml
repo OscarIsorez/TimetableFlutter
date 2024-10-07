@@ -39,6 +39,7 @@ dependencies:
   rrule: ^0.2.14
   http: ^1.1.2
   provider: ^6.1.2
+  flutter_timezone: ^3.0.1
 
   icalendar_parser: any
   dio: ^4.0.0
