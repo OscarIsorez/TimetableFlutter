@@ -1,9 +1,8 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,21 +14,24 @@ import 'package:timetableapp/components/weekly_schedule_model.dart';
 import 'package:timetableapp/utils.dart';
 
 class ScheduleProvider with ChangeNotifier {
+  late SharedPreferences _prefs;
+
+  ScheduleProvider() {
+    _initPreferences();
+  }
   List<WeekSchedule> _schedules = [];
   List<Event> _allEvents = [];
   EnumProviderState state = EnumProviderState.loading;
   String _url =
-      "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/MYzN24YZ.shu";
-  // "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/pn8Z8l38.shu";
-  String _infosToShare = "";
+      // "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/MYzN24YZ.shu";
+      "https://planning.univ-rennes1.fr/jsp/custom/modules/plannings/Xnm08qYr.shu";
   String _backupSchedule = '';
   late DateTime _lastUpdate;
   late DateTime _latestCourse = DateTime(1900, 1, 1, 8, 0);
   late DateTime _earliestCourse = DateTime(2900, 1, 1, 8, 0);
-  Map<String, Color> myColors = {};
+  Map<String, Color> myColors = <String, Color>{};
 
   List<WeekSchedule> get schedules => _schedules;
-  String get infosToShare => _infosToShare;
   String get url => _url;
 
   // The courses with the latest and earliest hours
@@ -39,6 +41,10 @@ class ScheduleProvider with ChangeNotifier {
   set url(String newUrl) {
     _url = newUrl;
     notifyListeners();
+  }
+
+  Future<void> _initPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
   }
 
   Future<void> fetchSchedule() async {
@@ -57,13 +63,18 @@ class ScheduleProvider with ChangeNotifier {
         final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
 
         _allEvents = [];
+        // String localTimezone = await FlutterTimezone.getLocalTimezone();
+
         for (var eventData in icsObj.data) {
+          DateTime start = eventData['dtstart'].toDateTime()!.toLocal();
+          DateTime end = eventData['dtend'].toDateTime()!.toLocal();
+
           Event event = Event(
               summary: eventData['summary'],
               description: eventData['description'],
               location: eventData['location'],
-              start: eventData['dtstart'].toDateTime()!,
-              end: eventData['dtend'].toDateTime()!);
+              start: start,
+              end: end);
           _allEvents.add(event);
           _updateLatestAndEarliestCourseHours(event.start, event.end);
         }
@@ -85,8 +96,12 @@ class ScheduleProvider with ChangeNotifier {
         loadBackup();
       }
     } catch (e) {
-      state = EnumProviderState.errorNetwork;
+      if (kDebugMode) {
+        print("ERROR$e");
+      }
+      state = EnumProviderState.error;
       loadBackup();
+      notifyListeners();
     }
   }
 
@@ -145,13 +160,11 @@ class ScheduleProvider with ChangeNotifier {
   }
 
   Future<void> saveBackupToPreferences(String backup) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('backup_schedule', backup);
+    _prefs.setString('backup_schedule', backup);
   }
 
   Future<void> loadBackup() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? backup = prefs.getString('backup_schedule');
+    String? backup = _prefs.getString('backup_schedule');
     if (backup != null) {
       try {
         final icsObj = ICalendar.fromString(backup);
@@ -187,9 +200,8 @@ class ScheduleProvider with ChangeNotifier {
   }
 
   Future<void> saveTimetableToPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
     final timetableJson = toJson();
-    prefs.setString('timetable', timetableJson);
+    _prefs.setString('timetable', timetableJson);
   }
 
   String toJson() {
