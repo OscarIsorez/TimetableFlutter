@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Timetable',
       theme: AppTheme.lightTheme,
       // darkTheme: AppTheme.darkTheme,
-      home: TimetableView(),
+      home: const TimetableView(),
     );
   }
 }
