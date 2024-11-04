@@ -25,7 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final String start = "8:00";
   final String end = "21:00";
   Map<String, Color> colorsMap = {};
-
+// 
   _getColorIndexBySummary(String summary) async {
     final prefs = await SharedPreferences.getInstance();
     final colorIndex = prefs.getInt(summary) ?? 0;
