@@ -6,16 +6,19 @@ class WeeklySchedule {
   List<Event> wednesday = [];
   List<Event> thursday = [];
   List<Event> friday = [];
+  List<Event> saturday = [];
 
-  WeeklySchedule(
-      {required this.monday,
-      required this.tuesday,
-      required this.wednesday,
-      required this.thursday,
-      required this.friday});
+  WeeklySchedule({
+    required this.monday,
+    required this.tuesday,
+    required this.wednesday,
+    required this.thursday,
+    required this.friday,
+    required this.saturday,
+  });
 
   List<List<Event>> get events {
-    return [monday,tuesday,wednesday,thursday,friday];
+    return [monday, tuesday, wednesday, thursday, friday];
   }
 
   void addEvent(Event event) {
@@ -35,6 +38,9 @@ class WeeklySchedule {
       case 5:
         friday.add(event);
         break;
+      case 6:
+        saturday.add(event);
+        break;
       default:
         break;
     }
@@ -46,6 +52,7 @@ class WeeklySchedule {
     wednesday.sort((a, b) => a.start.compareTo(b.start));
     thursday.sort((a, b) => a.start.compareTo(b.start));
     friday.sort((a, b) => a.start.compareTo(b.start));
+    saturday.sort((a, b) => a.start.compareTo(b.start));
   }
 
   void removeEvent(Event event) {
@@ -65,6 +72,9 @@ class WeeklySchedule {
       case 5:
         friday.remove(event);
         break;
+      case 6:
+        saturday.remove(event);
+        break;
       default:
         break;
     }
@@ -74,10 +84,15 @@ class WeeklySchedule {
     try {
       return WeeklySchedule(
         monday: (json['monday'] as List).map((e) => Event.fromJson(e)).toList(),
-        tuesday: (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
-        wednesday: (json['wednesday'] as List).map((e) => Event.fromJson(e)).toList(),
-        thursday: (json['thursday'] as List).map((e) => Event.fromJson(e)).toList(),
+        tuesday:
+            (json['tuesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        wednesday:
+            (json['wednesday'] as List).map((e) => Event.fromJson(e)).toList(),
+        thursday:
+            (json['thursday'] as List).map((e) => Event.fromJson(e)).toList(),
         friday: (json['friday'] as List).map((e) => Event.fromJson(e)).toList(),
+        saturday:
+            (json['saturday'] as List).map((e) => Event.fromJson(e)).toList(),
       );
     } catch (e) {
       // Handle the exception here
@@ -88,6 +103,7 @@ class WeeklySchedule {
         wednesday: [],
         thursday: [],
         friday: [],
+        saturday: [],
       );
     }
   }
@@ -133,9 +149,16 @@ class WeeklySchedule {
         json += ",";
       }
     }
+
+    json += "]}";
+    json += "\"saturday\": [";
+    for (var i = 0; i < saturday.length; i++) {
+      json += saturday[i].toJson();
+      if (i != saturday.length - 1) {
+        json += ",";
+      }
+    }
     json += "]}";
     return json;
   }
-
-
 }
