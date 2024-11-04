@@ -146,6 +146,7 @@ class Timetable {
         wednesday: [],
         thursday: [],
         friday: [],
+        saturday: [],
       );
 
       for (var j = 0; j < all_events.length; j++) {
