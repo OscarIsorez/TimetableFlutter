@@ -26,6 +26,14 @@ class _MyHomePageState extends State<MyHomePage> {
   final String end = "21:00";
   Map<String, Color> colorsMap = {};
 
+  _getColorIndexBySummary(String summary) async {
+    final prefs = await SharedPreferences.getInstance();
+    final colorIndex = prefs.getInt(summary) ?? 0;
+  
+    setState(() {});
+    return colorIndex;
+  }
+
   static Future<String?> selectUrlFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
     final url = prefs.getString('url') ?? "";
@@ -72,11 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
-    loadColorsFromStorage();
     updateMultipleSchedules();
+    loadColorsFromStorage();
     timetableBackup = timetable;
-
-  
   }
 
   static int getCurrentWeekIndex(timetable) {
@@ -263,11 +269,11 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
 
     List<Widget> columnChildren = [];
-    DateTime startingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 8, 15);
+    DateTime startingTime =
+        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 8, 0);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 21, 15);
+        day[0].start.year, day[0].start.month, day[0].start.day, 21, 0);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
@@ -308,7 +314,8 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
-                    : colorsMap[eventAtTime.summary] ?? Colors.blue,
+                    : colorsMap[_getColorIndexBySummary(eventAtTime.summary)] ??
+                        Colors.blue,
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: SingleChildScrollView(
@@ -503,7 +510,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             'Mar',
                             'Mer',
                             'Jeu',
-                            'Ven'
+                            'Ven',
+                            'Sam',
                           ])
                             Flexible(
                               flex: 1,
