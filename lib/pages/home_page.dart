@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
@@ -25,18 +27,18 @@ class _MyHomePageState extends State<MyHomePage> {
   final String start = "8:00";
   final String end = "21:00";
   Map<String, Color> colorsMap = {};
-// 
+//
   _getColorIndexBySummary(String summary) async {
     final prefs = await SharedPreferences.getInstance();
     final colorIndex = prefs.getInt(summary) ?? 0;
-  
+
     setState(() {});
     return colorIndex;
   }
 
   static Future<String?> selectUrlFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
-    final url = prefs.getString('url') ?? "";
+    final url = prefs.getString('timetable_url') ?? "";
     if (url.isNotEmpty) {
       return url;
     } else {
@@ -81,12 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
   initState() {
     super.initState();
     updateMultipleSchedules();
-    loadColorsFromStorage();
     timetableBackup = timetable;
-  }
-
-  static int getCurrentWeekIndex(timetable) {
-    return timetable.getWeekIndex(DateTime.now());
+    loadColorsFromStorage();
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -205,25 +203,22 @@ class _MyHomePageState extends State<MyHomePage> {
               const Text(
                 "Start",
                 style: TextStyle(
-                  //underline
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                  "${event.start.add(const Duration(hours: 2)).hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
+                  "${event.start.hour}:${event.start.minute == 0 ? "00" : event.start.minute}"),
               const SizedBox(height: 3),
               const Text(
                 "End",
                 style: TextStyle(
-                  //underline
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text("${event.end.add(
-                    const Duration(hours: 2),
-                  ).hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
+              Text(
+                  "${event.end.hour}:${event.end.minute == 0 ? "00" : event.end.minute}"),
               const SizedBox(height: 3),
               const Text(
                 "Description",
@@ -244,53 +239,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Flexible buildDay(List<Event> day) {
-    List<String> patternsToRemove = [
-      "(006)",
-      "(001)",
-      "(002)",
-      "(003)",
-      "(004)",
-      "(005)",
-      "(007)",
-      "(008)",
-      "(009)",
-      "(010)",
-      "(011)",
-      "(012)",
-      "(013)",
-      "(014)",
-      "(015)",
-      "(016)",
-      "Linux",
-      "ISTIC",
-      "(",
-      ")",
-      "Prioritaire",
-    ];
-
     List<Widget> columnChildren = [];
-    DateTime startingTime =
-        DateTime(day[0].start.year, day[0].start.month, day[0].start.day, 8, 0);
+    DateTime startingTime = DateTime(
+        day[0].start.year, day[0].start.month, day[0].start.day, 8, 01);
 
     DateTime endingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 21, 0);
+        day[0].start.year, day[0].start.month, day[0].start.day, 20, 59);
 
     for (var i = startingTime;
         i.isBefore(endingTime);
         i = i.add(const Duration(minutes: 15))) {
-      var eventAtTime = day.firstWhere(
-        (event) => event.start.isBefore(i) && event.end.isAfter(i),
-        orElse: () => Event(
-            summary: "",
-            description: "",
-            start: DateTime.now(),
-            end: DateTime.now(),
-            location: ""),
+      Event eventAtTime = day.firstWhere(
+        (element) => element.start.isBefore(i) && element.end.isAfter(i),
+        orElse: () =>
+            Event(summary: "", location: "", start: i, end: i, description: ''),
       );
-
-      for (String toremove in patternsToRemove) {
-        eventAtTime.location = eventAtTime.location.replaceAll(toremove, "");
-      }
 
       if (eventAtTime.summary != "") {
         columnChildren.add(
@@ -315,7 +278,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
                     : colorsMap[_getColorIndexBySummary(eventAtTime.summary)] ??
-                        Colors.blue,
+                        AppTheme.listOfColorsForCourses[Random()
+                            .nextInt(AppTheme.listOfColorsForCourses.length)],
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: SingleChildScrollView(

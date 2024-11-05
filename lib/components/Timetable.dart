@@ -256,10 +256,8 @@ class Timetable {
   }
 
   List<String> getUniqueSummaryList() {
-    if (all_events.isEmpty) {
-      return [];
-    }
     List<String> uniqueSummaryList = [];
+
     for (var event in all_events) {
       if (!uniqueSummaryList.contains(event.summary)) {
         uniqueSummaryList.add(event.summary);
