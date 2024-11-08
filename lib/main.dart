@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timetableapp/components/App_Theme.dart';
+import 'package:timetableapp/components/app_Theme.dart';
 import 'package:timetableapp/pages/home_page.dart';
 
 void main() {

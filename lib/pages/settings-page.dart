@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/Event.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timetableapp/components/Timetable.dart';
+import 'package:timetableapp/components/timetable.dart';
 
 class SettingsPage extends StatefulWidget {
   final List<String> listOfUniqueSummariesEvents;

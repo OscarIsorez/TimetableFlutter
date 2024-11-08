@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
@@ -14,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
-  static Map<String, Color> myColors = {};
   late DateTime lastUpdate;
 
   String url = "";
@@ -27,32 +25,16 @@ class Timetable {
 
   Timetable({required this.url});
 
+  get prefs => SharedPreferences.getInstance();
+
   // ------------------ METHODS ------------------ //
-
-  void initMapOfColors(List<Event> events, List<Color?> colors) {
-    myColors.clear();
-
-    var shuffledColors = List.from(colors)..shuffle();
-    var index = 0;
-    for (var event in events) {
-      if (index == shuffledColors.length) {
-        index = 0;
-      }
-      if (myColors.containsKey(event.summary.substring(0, 3))) {
-        continue;
-      }
-      if (event.summary.contains("CC")) {
-        myColors.putIfAbsent(event.summary.substring(0, 3), () => Colors.red);
-      } else {
-        myColors.putIfAbsent(
-            event.summary.substring(0, 3), () => shuffledColors[index]!);
-      }
-      index++;
-    }
-  }
 
   Future<List<WeeklySchedule>> generateEmptySchedules() async {
     return [];
+  }
+
+  Future<SharedPreferences> initSharedPreferences() async {
+    return await SharedPreferences.getInstance();
   }
 
   Future<List<WeeklySchedule>> generateTimetable() async {
@@ -89,7 +71,7 @@ class Timetable {
         all_events.add(event);
       }
       buildschedules();
-      initMapOfColors(all_events, AppTheme.listOfColorsForCourses);
+      initColorSummaryMap();
     } catch (e) {
       infosToShare = "No network connection, please try again later";
       return generateEmptySchedules();
@@ -98,13 +80,32 @@ class Timetable {
     return schedules;
   }
 
+  void initColorSummaryMap() async {
+    // key : summary, value : index of the color
+
+    for (var i = 0; i < all_events.length; i++) {
+      if (prefs.getString(all_events[i].summary) == null) {
+        prefs.setString(
+            all_events[i].summary,
+            AppTheme.listOfColorsForCourses[
+                    i % AppTheme.listOfColorsForCourses.length]
+                .toString());
+      }
+    }
+  }
+
+  Future<File> writeICSData(String data) async {
+    final appStorage = await getApplicationDocumentsDirectory();
+    final file = File('${appStorage.path}/data.ics');
+    await file.writeAsString(data);
+    return file;
+  }
+
   Future<String?> getStoredUrl() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('timetable_url');
   }
 
   Future<void> saveUrlToPreferences(String url) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('timetable_url', url);
   }
 
@@ -160,18 +161,9 @@ class Timetable {
     }
   }
 
-  Future<File> writeICSData(String data) async {
-    final appStorage = await getApplicationDocumentsDirectory();
-    final file = File('${appStorage.path}/data.ics');
-    await file.writeAsString(data);
-    return file;
-  }
-
-  /**
-   * 
-   * @param time : DateTime
-   * @return String au format yyyy-MM-dd HH:mm
-  */
+  ///
+  /// @param time : DateTime
+  /// @return String au format yyyy-MM-dd HH:mm
   String formatTime(DateTime time) {
     // String s =
     return "${time.year}-${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')} ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
@@ -211,8 +203,6 @@ class Timetable {
   }
 
   Future<void> saveTimetable(Timetable timetable) async {
-    final prefs = await SharedPreferences.getInstance();
-
     // Convert Timetable to JSON and store it as a String
     final timetableJson = timetable.toJson();
 
@@ -220,8 +210,6 @@ class Timetable {
   }
 
   Future<Timetable?> loadTimetable() async {
-    final prefs = await SharedPreferences.getInstance();
-
     try {
       final timetableJson = prefs.getString('timetable');
       print('Loaded timetable: $timetableJson');
@@ -243,7 +231,6 @@ class Timetable {
     return 0;
   }
 
-  /// get the list of unique events by comparing the summary attribute
   List<Event> getUniqueEvents() {
     List<Event> uniqueEvents = [];
 
