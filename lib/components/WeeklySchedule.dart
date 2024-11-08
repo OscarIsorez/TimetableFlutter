@@ -150,7 +150,7 @@ class WeeklySchedule {
       }
     }
 
-    json += "]}";
+    json += "],";
     json += "\"saturday\": [";
     for (var i = 0; i < saturday.length; i++) {
       json += saturday[i].toJson();

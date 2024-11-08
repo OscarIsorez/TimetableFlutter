@@ -17,8 +17,6 @@ class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   late DateTime lastUpdate;
 
-
-
   String url = "";
   List<WeeklySchedule> schedules = [];
   // ignore: non_constant_identifier_names
@@ -82,12 +80,9 @@ class Timetable {
   void initColorSummaryMap() async {
     // key : summary, value : index of the color
     for (var i = 0; i < all_events.length; i++) {
-      if (prefs.getString(all_events[i].summary) == null) {
-         prefs.setString(
-            all_events[i].summary,
-            AppTheme.listOfColorsForCourses[
-                    i % AppTheme.listOfColorsForCourses.length]
-                .toString());
+      if (prefs.getInt(all_events[i].summary) == null) {
+        prefs.setInt(all_events[i].summary,
+            (i % AppTheme.listOfColorsForCourses.length));
       }
     }
   }

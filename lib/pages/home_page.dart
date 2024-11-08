@@ -10,8 +10,6 @@ import 'package:timetableapp/components/mySpace.dart';
 import 'package:timetableapp/components/snackBarPopUp.dart';
 import 'package:timetableapp/components/timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timetableapp/pages/settings-page.dart';
 import 'package:timetableapp/sharedpreference_helper.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -31,10 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
   SharedPreferencesHelper prefs = SharedPreferencesHelper();
 
   int _getColorIndexBySummary(String summary) {
-    final colorIndexString = prefs.getString(summary);
-    final colorIndex = int.tryParse(colorIndexString ?? '0') ?? 0;
-
-    return colorIndex;
+    return prefs.getInt(summary) ?? 0;
   }
 
   String? selectUrlFromStorage() {
@@ -54,8 +49,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<WeeklySchedule> schedules = [];
 
-  final TextEditingController _urlController = TextEditingController();
-
   Color? mygrey = Colors.grey[100];
 
   static const double globalHeight = 15;
@@ -71,6 +64,13 @@ class _MyHomePageState extends State<MyHomePage> {
     timetable = Timetable(url: selectUrlFromStorage().toString());
     updateMultipleSchedules();
     timetableBackup = timetable;
+  }
+
+  void _saveSelectedColor(String summary, int colorIndex) {
+    prefs.setInt(summary, colorIndex);
+    if (kDebugMode) {
+      print(prefs.getInt(summary));
+    }
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.only(top: 1),
               child: Column(
                 children: [
-                  for (var i = 0; i < 52; i++)
+                  for (var i = 0; i < 55; i++)
                     Padding(
                       padding: const EdgeInsets.only(top: 1),
                       child: Container(
@@ -162,6 +162,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void showEventDialog(Event event) {
+    Color? selectedColor =
+        AppTheme.listOfColorsForCourses[_getColorIndexBySummary(event.summary)];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -174,7 +177,6 @@ class _MyHomePageState extends State<MyHomePage> {
               const Text(
                 "Location",
                 style: TextStyle(
-                  //underline
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.bold,
                 ),
@@ -205,13 +207,40 @@ class _MyHomePageState extends State<MyHomePage> {
                 "Description",
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  //underline
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(event.description.toString().replaceAll(RegExp("\n"), " ")),
               const SizedBox(height: 3),
+              const Text(
+                "Color",
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              DropdownButton<Color>(
+                value: selectedColor,
+                items: AppTheme.listOfColorsForCourses.map((Color? color) {
+                  return DropdownMenuItem<Color>(
+                    value: color,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      color: color,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (Color? newColor) {
+                  setState(() {
+                    selectedColor = newColor;
+                    final colorIndex =
+                        AppTheme.listOfColorsForCourses.indexOf(newColor!);
+                    _saveSelectedColor(event.summary, colorIndex);
+                  });
+                },
+              ),
             ],
           ),
         );
@@ -373,20 +402,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   // go back to the first page
                   () => goToFirstWeek(),
               icon: const Icon(Icons.home)),
-          IconButton(
-            onPressed: () {
-              // Navigate to settings page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => SettingsPage(
-                          listOfUniqueSummariesEvents:
-                              timetable.getUniqueSummaryList(),
-                        )),
-              );
-            },
-            icon: Icon(Icons.settings),
-          )
         ],
       ),
       body: SingleChildScrollView(
@@ -402,6 +417,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     const SizedBox(height: 13),
                     for (var hour in [
+                      '7:00',
                       '8:00',
                       '9:00',
                       '10:00',
@@ -444,7 +460,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // Deuxième colonne pour les jours et la PageView
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 920,
                   child: Column(
                     children: [
