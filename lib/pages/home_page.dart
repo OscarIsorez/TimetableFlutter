@@ -12,6 +12,7 @@ import 'package:timetableapp/components/timetable.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetableapp/pages/settings-page.dart';
+import 'package:timetableapp/sharedpreference_helper.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -24,20 +25,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final String start = "8:00";
+  final String start = "7:00";
   final String end = "21:00";
-  Map<String, Color> colorsMap = {};
-//
-  _getColorIndexBySummary(String summary) async {
-    final prefs = await SharedPreferences.getInstance();
-    final colorIndex = prefs.getInt(summary) ?? 0;
 
-    setState(() {});
+  SharedPreferencesHelper prefs = SharedPreferencesHelper();
+
+  int _getColorIndexBySummary(String summary) {
+    final colorIndexString = prefs.getString(summary);
+    final colorIndex = int.tryParse(colorIndexString ?? '0') ?? 0;
+
     return colorIndex;
   }
 
-  static Future<String?> selectUrlFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
+  String? selectUrlFromStorage() {
     final url = prefs.getString('timetable_url') ?? "";
     if (url.isNotEmpty) {
       return url;
@@ -46,21 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> loadColorsFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    for (var course in timetable.getUniqueSummaryList()) {
-      final colorIndex = prefs.getInt(course) ?? 0;
-      colorsMap[course] = AppTheme.listOfColorsForCourses[colorIndex]!;
-    }
-  }
-
-  // ignore: non_constant_identifier_names
-  static String SetUrlFromStorage() {
-    selectUrlFromStorage().then((value) => value);
-    return selectUrlFromStorage().toString();
-  }
-
-  Timetable timetable = Timetable(url: SetUrlFromStorage());
+  late Timetable timetable;
 
   final PageController _pageController = PageController(initialPage: 0);
 
@@ -82,9 +68,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
+    timetable = Timetable(url: selectUrlFromStorage().toString());
     updateMultipleSchedules();
     timetableBackup = timetable;
-    loadColorsFromStorage();
   }
 
   DateTime updateDayWeekDynamic(DateTime newDate) {
@@ -111,7 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
       SnackBarPopUp.callSnackBar(
           "Timetable up to date", context, Colors.green[300]);
     } else {
-      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
         builder: (context) {
@@ -173,11 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String generateLastUpdateString() {
-    if (timetable.lastUpdate != null) {
-      return "${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate.hour}:${timetable.lastUpdate.minute < 10 ? "0${timetable.lastUpdate.minute}" : timetable.lastUpdate.minute}";
-    } else {
-      return "";
-    }
+    return "${timetable.lastUpdate.day < 10 ? "0${timetable.lastUpdate.day}" : timetable.lastUpdate.day}/${timetable.lastUpdate.month < 10 ? "0${timetable.lastUpdate.month}" : timetable.lastUpdate.month} at ${timetable.lastUpdate!.hour < 10 ? "0${timetable.lastUpdate!.hour}" : timetable.lastUpdate.hour}:${timetable.lastUpdate.minute < 10 ? "0${timetable.lastUpdate.minute}" : timetable.lastUpdate.minute}";
   }
 
   void showEventDialog(Event event) {
@@ -241,7 +222,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Flexible buildDay(List<Event> day) {
     List<Widget> columnChildren = [];
     DateTime startingTime = DateTime(
-        day[0].start.year, day[0].start.month, day[0].start.day, 8, 01);
+        day[0].start.year, day[0].start.month, day[0].start.day, 7, 01);
 
     DateTime endingTime = DateTime(
         day[0].start.year, day[0].start.month, day[0].start.day, 20, 59);
@@ -277,7 +258,8 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 color: eventAtTime.summary.contains("CC")
                     ? Colors.red
-                    : colorsMap[_getColorIndexBySummary(eventAtTime.summary)] ??
+                    : AppTheme.listOfColorsForCourses[
+                            _getColorIndexBySummary(eventAtTime.summary)] ??
                         AppTheme.listOfColorsForCourses[Random()
                             .nextInt(AppTheme.listOfColorsForCourses.length)],
                 borderRadius: const BorderRadius.all(Radius.circular(8)),

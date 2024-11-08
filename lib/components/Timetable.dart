@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
@@ -10,31 +11,29 @@ import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
 import 'package:timetableapp/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetableapp/sharedpreference_helper.dart';
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
   late DateTime lastUpdate;
+
+
 
   String url = "";
   List<WeeklySchedule> schedules = [];
   // ignore: non_constant_identifier_names
   var all_events = <Event>[];
   var infosToShare = "";
+  SharedPreferencesHelper prefs = SharedPreferencesHelper();
 
   // ------------------ CONSTRUCTOR ------------------ //
 
   Timetable({required this.url});
 
-  get prefs => SharedPreferences.getInstance();
-
   // ------------------ METHODS ------------------ //
 
   Future<List<WeeklySchedule>> generateEmptySchedules() async {
     return [];
-  }
-
-  Future<SharedPreferences> initSharedPreferences() async {
-    return await SharedPreferences.getInstance();
   }
 
   Future<List<WeeklySchedule>> generateTimetable() async {
@@ -82,10 +81,9 @@ class Timetable {
 
   void initColorSummaryMap() async {
     // key : summary, value : index of the color
-
     for (var i = 0; i < all_events.length; i++) {
       if (prefs.getString(all_events[i].summary) == null) {
-        prefs.setString(
+         prefs.setString(
             all_events[i].summary,
             AppTheme.listOfColorsForCourses[
                     i % AppTheme.listOfColorsForCourses.length]
@@ -106,7 +104,7 @@ class Timetable {
   }
 
   Future<void> saveUrlToPreferences(String url) async {
-    prefs.setString('timetable_url', url);
+    await prefs.setString('timetable_url', url);
   }
 
   List<Event> allEventsSorted() {
@@ -206,22 +204,26 @@ class Timetable {
     // Convert Timetable to JSON and store it as a String
     final timetableJson = timetable.toJson();
 
-    prefs.setString('timetable', timetableJson);
+    await prefs.setString('timetable', timetableJson);
   }
 
   Future<Timetable?> loadTimetable() async {
+    // Load the JSON string from SharedPreferences and convert it back to a Timetable object
     try {
       final timetableJson = prefs.getString('timetable');
-      print('Loaded timetable: $timetableJson');
 
+      if (kDebugMode) {
+        print('Loaded timetable: $timetableJson');
+      }
       if (timetableJson != null) {
         return Timetable.fromJson(jsonDecode(timetableJson));
       } else {
         return null;
       }
     } catch (e) {
-      // Handle the exception here
-      print('Error loading timetable: $e');
+      if (kDebugMode) {
+        print('Error while loading timetable: $e');
+      }
       return null;
     }
   }
