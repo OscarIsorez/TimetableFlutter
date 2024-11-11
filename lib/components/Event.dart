@@ -13,23 +13,23 @@ class Event {
     required this.location,
   });
 
-  empty() {
+  static Event empty() {
     return Event(
       summary: "",
       description: "",
-      start: DateTime.now(),
-      end: DateTime.now(),
+      start: DateTime(0, 0, 0),
+      end: DateTime(8000, 8000, 8000),
       location: "",
     );
   }
 
   String toJson() {
     String json = "{";
-    json += "\"summary\": \"" + summary + "\",";
-    json += "\"description\": \"" + description + "\",";
-    json += "\"start\": \"" + start.toIso8601String() + "\",";
-    json += "\"end\": \"" + end.toIso8601String() + "\",";
-    json += "\"location\": \"" + location + "\"";
+    json += "\"summary\": \"$summary\",";
+    json += "\"description\": \"$description\",";
+    json += "\"start\": \"${start.toIso8601String()}\",";
+    json += "\"end\": \"${end.toIso8601String()}\",";
+    json += "\"location\": \"$location\"";
     json += "}";
     return json;
   }
@@ -40,4 +40,9 @@ class Event {
         start = DateTime.parse(json['start']),
         end = DateTime.parse(json['end']),
         location = json['location'];
+
+  @override
+  String toString() {
+    return "Event{summary: $summary, description: $description, start: $start, end: $end, location: $location}\n";
+  }
 }

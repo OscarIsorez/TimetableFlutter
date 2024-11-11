@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:timetableapp/components/App_Theme.dart';
 import 'package:timetableapp/components/WeeklySchedule.dart';
 import 'package:timetableapp/components/Event.dart';
@@ -9,9 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:icalendar_parser/icalendar_parser.dart';
-import 'package:timetableapp/pages/home_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetableapp/sharedpreference_helper.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class Timetable {
   // ------------------ ATTRIBUTES ------------------ //
@@ -55,17 +52,24 @@ class Timetable {
       final file = await writeICSData(body);
 
       final icsObj = ICalendar.fromLines(File(file.path).readAsLinesSync());
+      final userLocation = tz.getLocation('Europe/Paris');
       for (var i = 0; i < icsObj.data.length; i++) {
         Event event = Event(
-            summary: icsObj.data[i]['summary'].replaceAll("G4", ""),
-            description: icsObj.data[i]['description'],
-            location: icsObj.data[i]['location'],
-            start: icsObj.data[i]['dtstart'].toDateTime()!,
-            // .add(const Duration(hours: 1)),
-            end: icsObj.data[i]['dtend'].toDateTime()!);
-        // .add(const Duration(hours: 1)));
+          summary: icsObj.data[i]['summary'].replaceAll("G4", ""),
+          description: icsObj.data[i]['description'],
+          location: icsObj.data[i]['location'],
+          start: tz.TZDateTime.from(
+              icsObj.data[i]['dtstart'].toDateTime()!, userLocation),
+          end: tz.TZDateTime.from(
+              icsObj.data[i]['dtend'].toDateTime()!, userLocation),
+        );
 
         all_events.add(event);
+        // print todays events
+        if (event.start.isAfter(DateTime.now()) &&
+            event.start.isBefore(DateTime.now().add(Duration(days: 4)))) {
+          print(event);
+        }
       }
       buildschedules();
       initColorSummaryMap();

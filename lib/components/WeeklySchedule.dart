@@ -18,7 +18,7 @@ class WeeklySchedule {
   });
 
   List<List<Event>> get events {
-    return [monday, tuesday, wednesday, thursday, friday];
+    return [monday, tuesday, wednesday, thursday, friday, saturday];
   }
 
   void addEvent(Event event) {
