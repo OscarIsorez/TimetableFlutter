@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   initState() {
     super.initState();
-    timetable = Timetable(url: selectUrlFromStorage().toString());
+    timetable = Timetable(url: selectUrlFromStorage()!);
     updateMultipleSchedules();
     timetableBackup = timetable;
   }
@@ -407,15 +407,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
-          width: MediaQuery.of(context).size.width,
           child: Row(
             children: [
-              // Première colonne pour les horaires
               SizedBox(
                 width: 40,
                 child: Column(
                   children: [
-                    const SizedBox(height: 13),
+                    // const SizedBox(height: 13),
                     for (var hour in [
                       '7:00',
                       '8:00',
@@ -433,26 +431,34 @@ class _MyHomePageState extends State<MyHomePage> {
                       '20:00',
                       '21:00'
                     ])
-                      Column(
-                        children: [
-                          Container(
-                            alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.only(bottom: 1),
-                            height: globalHeight,
-                            color: Colors.white,
-                            child: Text(
-                              "$hour-",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
+                      Container(
+                        color: Colors.red[100],
+                        child: Column(
+                          children: [
+                            Container(
+                              alignment: Alignment.centerRight,
+                              margin: const EdgeInsets.only(bottom: 1),
+                              height: globalHeight,
+                              color: Colors.white,
+                              child: Text(
+                                "$hour-",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          ),
-                          MySpace(color: Colors.white, height: globalHeight),
-                          MySpace(color: Colors.white, height: globalHeight),
-                          MySpace(color: Colors.white, height: globalHeight),
-                        ],
+                            if (hour != '21:00') ...[
+                              MySpace(
+                                  color: Colors.white, height: globalHeight),
+                              MySpace(
+                                  color: Colors.white, height: globalHeight),
+                              MySpace(
+                                  color: Colors.white, height: globalHeight),
+                            ],
+                          ],
+                        ),
                       ),
                   ],
                 ),
@@ -461,10 +467,9 @@ class _MyHomePageState extends State<MyHomePage> {
               // Deuxième colonne pour les jours et la PageView
               Expanded(
                 child: SizedBox(
-                  height: 920,
+                  height: 940,
                   child: Column(
                     children: [
-                      const SizedBox(height: 5),
                       Row(
                         children: [
                           for (var dayWeek in [
